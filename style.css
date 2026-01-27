@@ -225,3 +225,63 @@ body.supervisiones .search-box {
 }
 
 
+/* === HEADER BASE === */
+.top-bar {
+  width: 100%;
+  padding: 30px;
+}
+
+.top-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* Logo siempre a la izquierda */
+.logo {
+  margin-right: auto;
+}
+
+/* === HOME === */
+body.home .search-box {
+  display: flex;
+}
+
+body.home .right-box {
+  display: none;
+}
+
+/* === SUPERVISIONES === */
+body.supervisiones .search-box {
+  display: none;
+}
+
+body.supervisiones .right-box {
+  display: inline-flex;
+}
+
+/* Estilo buscador */
+.search-box {
+  display: none; /* oculto por defecto */
+  align-items: center;
+  gap: 10px;
+  border: 3px solid black;
+  padding: 10px 15px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: monospace;
+}
+
+/* Estilo EterIA */
+.right-box {
+  display: none; /* oculto por defecto */
+  border: 3px solid black;
+  padding: 15px 30px;
+  font-size: 24px;
+}
+
