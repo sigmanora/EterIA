@@ -334,3 +334,7 @@ body.supervisiones .right-box {
 }
 
 
+.top-inner {
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
