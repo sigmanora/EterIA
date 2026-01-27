@@ -297,4 +297,29 @@ body.home .right-box {
 }
 
 
+/* === CLAVE FINAL DEL HEADER === */
+
+/* El logo empuja todo lo demás a la derecha */
+.logo {
+  margin-right: auto;
+}
+
+/* HOME */
+body.home .search-box {
+  display: flex;
+}
+
+body.home .right-box {
+  display: none;
+}
+
+/* SUPERVISIONES */
+body.supervisiones .search-box {
+  display: none;
+}
+
+body.supervisiones .right-box {
+  display: inline-flex;
+}
+
 
