@@ -1,0 +1,84 @@
+* {
+  box-sizing: border-box;
+  font-family: monospace;
+}
+
+body {
+  margin: 0;
+  background-color: #f6f6f6;
+  background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
+                    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Header */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 30px;
+}
+
+.logo {
+  border: 3px solid black;
+  padding: 15px 30px;
+  font-size: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 3px solid black;
+  padding: 10px 20px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+}
+
+.search-box .icon {
+  margin-left: 10px;
+}
+
+/* Card central */
+.container {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+}
+
+.card {
+  width: 600px;
+  border: 3px solid black;
+  background: white;
+  padding: 60px;
+  text-align: center;
+}
+
+.card h1 {
+  font-size: 64px;
+  margin-bottom: 60px;
+}
+
+/* Botones */
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+button {
+  flex: 1;
+  padding: 20px;
+  border: 3px solid black;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
