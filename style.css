@@ -82,4 +82,41 @@ button:hover {
   background: #f0f0f0;
 }
 
+/* Card más ancha */
+.card.wide {
+  width: 800px;
+}
+
+/* Texto explicativo */
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+/* Caja de subida */
+.upload-box {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.upload-box input {
+  padding: 12px;
+  border: 3px solid black;
+  background: white;
+  width: 300px;
+}
+
+/* Botón pequeño */
+button.small {
+  padding: 12px 20px;
+}
+
+/* Botón principal */
+button.main-action {
+  padding: 20px 40px;
+  font-size: 18px;
+}
+
 
