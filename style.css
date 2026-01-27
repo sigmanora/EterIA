@@ -285,3 +285,16 @@ body.supervisiones .right-box {
   font-size: 24px;
 }
 
+/* === HOME: buscador al extremo derecho === */
+body.home .search-box {
+  display: flex;
+  margin-left: auto;   /* 🔥 ESTO ES LA CLAVE */
+}
+
+/* En home, EterIA no existe ni ocupa espacio */
+body.home .right-box {
+  display: none;
+}
+
+
+
