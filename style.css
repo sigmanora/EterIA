@@ -1,3 +1,4 @@
+/* ================= RESET ================= */
 * {
   box-sizing: border-box;
   font-family: monospace;
@@ -6,55 +7,88 @@
 body {
   margin: 0;
   background-color: #f6f6f6;
-  background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
-                    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+  background-image:
+    linear-gradient(#e0e0e0 1px, transparent 1px),
+    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-/* Header */
+/* ================= HEADER ================= */
 .top-bar {
-  display: flex;
-  justify-content: center;
-  padding: 40px;
+  width: 100%;
+  padding: 30px 90px;
 }
 
+.top-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
 .logo {
   border: 3px solid black;
   padding: 15px 30px;
   font-size: 24px;
 }
 
+/* Buscador */
 .search-box {
-  display: flex;
+  display: none;
   align-items: center;
+  gap: 10px;
   border: 3px solid black;
   padding: 10px 20px;
+  font-size: 16px;
 }
 
 .search-box input {
   border: none;
   outline: none;
-  font-size: 16px;
   background: transparent;
 }
 
-.search-box .icon {
-  margin-left: 10px;
+/* Caja derecha (EterIA) */
+.right-box {
+  display: none;
+  border: 3px solid black;
+  padding: 15px 30px;
+  font-size: 24px;
 }
 
-/* Card central */
+/* HOME */
+body.home .search-box {
+  display: flex;
+}
+
+/* SUPERVISIONES */
+body.supervisiones .right-box {
+  display: inline-flex;
+}
+
+/* ================= CONTENIDO ================= */
 .container {
   display: flex;
   justify-content: center;
   margin-top: 80px;
 }
 
+body.supervisiones .container {
+  margin-top: 120px;
+}
+
+/* Card principal */
 .card {
   width: 600px;
+  max-width: 800px;
   border: 3px solid black;
   background: white;
   padding: 60px;
   text-align: center;
+}
+
+.card.wide {
+  width: 800px;
 }
 
 .card h1 {
@@ -62,7 +96,13 @@ body {
   margin-bottom: 60px;
 }
 
-/* Botones */
+/* Texto secundario */
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+/* ================= BOTONES ================= */
 .buttons {
   display: flex;
   justify-content: space-between;
@@ -82,18 +122,16 @@ button:hover {
   background: #f0f0f0;
 }
 
-/* Card más ancha */
-.card.wide {
-  width: 800px;
+button.small {
+  padding: 12px 20px;
 }
 
-/* Texto explicativo */
-.subtitle {
+button.main-action {
+  padding: 20px 40px;
   font-size: 18px;
-  margin-bottom: 40px;
 }
 
-/* Caja de subida */
+/* ================= UPLOAD ================= */
 .upload-box {
   display: flex;
   justify-content: center;
@@ -108,233 +146,5 @@ button:hover {
   width: 300px;
 }
 
-/* Botón pequeño */
-button.small {
-  padding: 12px 20px;
-}
 
-/* Botón principal */
-button.main-action {
-  padding: 20px 40px;
-  font-size: 18px;
-}
-
-
-/* Header consistente */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 30px;
-}
-
-.top-bar .right-box {
-  border: 3px solid black;
-  padding: 15px 30px;
-  font-size: 24px;
-}
-
-/* SOLO home */
-body.home .container {
-  margin-top: 80px;
-}
-
-/* SOLO supervisiones */
-body.supervisiones .container {
-  margin-top: 120px;
-}
-
-/* Evitar que se estire todo */
-.card {
-  max-width: 800px;
-}
-
-/* Botones centrados */
-body.supervisiones .card {
-  text-align: center;
-}
-
-/* Contenedor interno del header */
-.top-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-/* Header no flotante */
-.top-bar {
-  padding: 30px;
-}
-
-/* Caja derecha */
-.right-box {
-  border: 3px solid black;
-  padding: 15px 30px;
-  font-size: 24px;
-}
-
-/* === FIX HEADER DEFINITIVO === */
-.top-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.logo {
-  display: inline-flex;
-  align-items: center;
-}
-
-.right-box {
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Evitar que se vayan para abajo en home */
-body.home .top-inner {
-  flex-wrap: nowrap;
-}
-
-/* Buscador */
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 3px solid black;
-  padding: 10px 15px;
-  font-size: 16px;
-}
-
-.search-box input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: monospace;
-}
-
-/* SOLO home: mostrar buscador */
-body.home .search-box {
-  display: flex;
-}
-
-/* OTRAS páginas: ocultar buscador */
-body.supervisiones .search-box {
-  display: none;
-}
-
-
-/* === HEADER BASE === */
-.top-bar {
-  width: 100%;
-  padding: 30px 90px;
-}
-
-.top-inner {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-}
-
-/* Logo siempre a la izquierda */
-.logo {
-  margin-right: auto;
-}
-
-/* === HOME === */
-body.home .search-box {
-  display: flex;
-}
-
-body.home .right-box {
-  display: none;
-}
-
-/* === SUPERVISIONES === */
-body.supervisiones .search-box {
-  display: none;
-}
-
-body.supervisiones .right-box {
-  display: inline-flex;
-}
-
-/* Estilo buscador */
-.search-box {
-  display: none; /* oculto por defecto */
-  align-items: center;
-  gap: 10px;
-  border: 3px solid black;
-  padding: 10px 15px;
-}
-
-.search-box input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: monospace;
-}
-
-/* Estilo EterIA */
-.right-box {
-  display: none; /* oculto por defecto */
-  border: 3px solid black;
-  padding: 15px 30px;
-  font-size: 24px;
-}
-
-/* === HOME: buscador al extremo derecho === */
-body.home .search-box {
-  display: flex;
-  margin-left: auto;   /* 🔥 ESTO ES LA CLAVE */
-}
-
-/* En home, EterIA no existe ni ocupa espacio */
-body.home .right-box {
-  display: none;
-}
-
-
-/* === CLAVE FINAL DEL HEADER === */
-
-/* El logo empuja todo lo demás a la derecha */
-.logo {
-  margin-right: auto;
-}
-
-/* HOME */
-body.home .search-box {
-  display: flex;
-}
-
-body.home .right-box {
-  display: none;
-}
-
-/* SUPERVISIONES */
-body.supervisiones .search-box {
-  display: none;
-}
-
-body.supervisiones .right-box {
-  display: inline-flex;
-}
-
-
-
-/* === DEBUG HEADER EXTREMOS === */
-.top-inner {
-  width: 100vw !important;
-  max-width: none !important;
-  padding: 0 80px !important;
-  box-sizing: border-box;
-}
-
-
-.top-inner {
-  background: rgba(255, 0, 0, 0.1) !important;
-}
 
