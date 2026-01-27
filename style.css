@@ -228,7 +228,7 @@ body.supervisiones .search-box {
 /* === HEADER BASE === */
 .top-bar {
   width: 100%;
-  padding: 30px 60px;
+  padding: 30px 90px;
 }
 
 .top-inner {
@@ -322,6 +322,7 @@ body.supervisiones .search-box {
 body.supervisiones .right-box {
   display: inline-flex;
 }
+
 
 
 
