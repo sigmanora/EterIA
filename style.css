@@ -14,8 +14,8 @@ body {
 /* Header */
 .top-bar {
   display: flex;
-  justify-content: space-between;
-  padding: 30px;
+  justify-content: center;
+  padding: 40px;
 }
 
 .logo {
@@ -81,4 +81,5 @@ button {
 button:hover {
   background: #f0f0f0;
 }
+
 
