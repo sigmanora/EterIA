@@ -197,4 +197,31 @@ body.home .top-inner {
   flex-wrap: nowrap;
 }
 
+/* Buscador */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 3px solid black;
+  padding: 10px 15px;
+  font-size: 16px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: monospace;
+}
+
+/* SOLO home: mostrar buscador */
+body.home .search-box {
+  display: flex;
+}
+
+/* OTRAS páginas: ocultar buscador */
+body.supervisiones .search-box {
+  display: none;
+}
+
 
