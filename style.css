@@ -174,3 +174,27 @@ body.supervisiones .card {
   font-size: 24px;
 }
 
+/* === FIX HEADER DEFINITIVO === */
+.top-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.right-box {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Evitar que se vayan para abajo en home */
+body.home .top-inner {
+  flex-wrap: nowrap;
+}
+
+
