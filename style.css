@@ -325,4 +325,12 @@ body.supervisiones .right-box {
 
 
 
+/* === DEBUG HEADER EXTREMOS === */
+.top-inner {
+  width: 100vw !important;
+  max-width: none !important;
+  padding: 0 80px !important;
+  box-sizing: border-box;
+}
+
 
