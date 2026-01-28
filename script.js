@@ -7,6 +7,11 @@ const resultado = document.getElementById("resultado");
 const modal = document.getElementById("modal");
 const closeBtn = document.querySelector(".close-btn");
 
+closeBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+
 let personas = [];
 
 /* Normalizar texto */
