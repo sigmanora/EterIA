@@ -23,18 +23,15 @@ function normalizar(texto = "") {
 }
 
 function formatearNombre(nombreCrudo = "") {
-  // Quita comas y espacios extra
-  const limpio = nombreCrudo.replace(",", "").trim();
+  const limpio = nombreCrudo.replace(/"/g, "").trim();
 
-  const partes = limpio.split(" ");
+  if (!limpio.includes(",")) return limpio;
 
-  if (partes.length < 2) return nombreCrudo;
-
-  const apellido = partes[0];
-  const nombre = partes.slice(1).join(" ");
+  const [apellido, nombre] = limpio.split(",").map(p => p.trim());
 
   return `${nombre} ${apellido}`;
 }
+
 
 
 function cargarHoja(url, tipo) {
