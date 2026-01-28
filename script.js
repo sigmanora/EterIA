@@ -14,6 +14,21 @@ function normalizar(texto = "") {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function formatearNombre(nombreCrudo = "") {
+  // Quita comas y espacios extra
+  const limpio = nombreCrudo.replace(",", "").trim();
+
+  const partes = limpio.split(" ");
+
+  if (partes.length < 2) return nombreCrudo;
+
+  const apellido = partes[0];
+  const nombre = partes.slice(1).join(" ");
+
+  return `${nombre} ${apellido}`;
+}
+
+
 /* Cargar una hoja CSV */
 function cargarHoja(url, tipo) {
   return fetch(url)
@@ -65,7 +80,7 @@ input.addEventListener("input", () => {
 
 resultado.innerHTML = `
   <div class="card">
-    <h2>${encontrado.nombre}</h2>
+    <h2>${formatearNombre(encontrado.nombre)}</h2>
 
     <p><strong>Evaluación:</strong> ${encontrado.evaluacion || "Sin evaluar"}</p>
     <p><strong>Tipo:</strong> ${encontrado.tipo}</p>
