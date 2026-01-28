@@ -4,6 +4,9 @@ const AUXILIARES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji
 const input = document.querySelector(".search-box input");
 const resultado = document.getElementById("resultado");
 
+const modal = document.getElementById("modal");
+const closeBtn = document.querySelector(".close-btn");
+
 let personas = [];
 
 /* Normalizar texto */
