@@ -1,5 +1,5 @@
-const AYUDANTES_URL = "PEGA_AQUÍ_CSV_AYUDANTES";
-const AUXILIARES_URL = "PEGA_AQUÍ_CSV_AUXILIARES";
+const AYUDANTES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
+const AUXILIARES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=657863670&single=true&output=csv";
 
 const input = document.querySelector(".search-box input");
 const resultado = document.getElementById("resultado");
