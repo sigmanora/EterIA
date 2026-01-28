@@ -97,4 +97,7 @@ resultado.innerHTML = `
   </div>
 `;
 
+modal.classList.remove("hidden");
+
+
 });
