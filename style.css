@@ -147,6 +147,13 @@ button.main-action {
   width: 300px;
 }
 
+#resultado {
+  margin-top: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 
 
 
