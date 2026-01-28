@@ -63,13 +63,15 @@ input.addEventListener("input", () => {
     return;
   }
 
-  resultado.innerHTML = `
-    <div class="card">
-      <h2>${encontrado.nombre}</h2>
-      <p><strong>Tipo:</strong> ${encontrado.tipo}</p>
-      <p><strong>Evaluación:</strong> ${encontrado.evaluacion || "Sin evaluar"}</p>
-      <p><strong>Curso y semestre:</strong> ${encontrado.curso || "-"}</p>
-      <p><strong>Comentarios:</strong> ${encontrado.comentarios || "-"}</p>
-    </div>
-  `;
+resultado.innerHTML = `
+  <div class="card">
+    <h2>${encontrado.nombre}</h2>
+
+    <p><strong>Evaluación:</strong> ${encontrado.evaluacion || "Sin evaluar"}</p>
+    <p><strong>Tipo:</strong> ${encontrado.tipo}</p>
+    <p><strong>Curso y semestre:</strong> ${encontrado.curso || "-"}</p>
+    <p><strong>Comentarios:</strong> ${encontrado.comentarios || "-"}</p>
+  </div>
+`;
+
 });
