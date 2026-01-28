@@ -33,6 +33,13 @@ function formatearNombre(nombreCrudo = "") {
 }
 
 
+function parseCSVLine(line) {
+  const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+  return line?.match(regex)?.map(v =>
+    v.replace(/^"|"$/g, "").trim()
+  ) || [];
+}
+
 
 function cargarHoja(url, tipo) {
   return fetch(url)
