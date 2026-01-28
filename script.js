@@ -37,7 +37,6 @@ function formatearNombre(nombreCrudo = "") {
 }
 
 
-/* Cargar una hoja CSV */
 function cargarHoja(url, tipo) {
   return fetch(url)
     .then(res => res.text())
@@ -45,19 +44,21 @@ function cargarHoja(url, tipo) {
       const filas = csv.split("\n").slice(1);
 
       return filas.map(fila => {
-        const columnas = fila.split(",");
+        const columnas = parseCSVLine(fila);
 
         return {
-          rut: columnas[0],
-          nombre: columnas[1],          // "Apellido, Nombre"
-          evaluacion: columnas[2],
-          curso: columnas[3],
-          comentarios: columnas[4],
-          tipo: tipo
+          nombre: columnas[0],        // Apellido, Nombre
+          rut: columnas[1],
+          curso: columnas[2],
+          semestre: columnas[3],
+          evaluacion: columnas[4],
+          comentarios: columnas[5],
+          tipo
         };
       });
     });
 }
+
 
 /* Cargar ambas hojas */
 Promise.all([
