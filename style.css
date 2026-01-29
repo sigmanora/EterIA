@@ -1,4 +1,4 @@
-/* ================= RESET ================= */
+/* ===== RESET ===== */
 * {
   box-sizing: border-box;
   font-family: monospace;
@@ -6,22 +6,20 @@
 
 body {
   margin: 0;
-  background-color: #f6f6f6;
-  background-image:
+  background:
     linear-gradient(#e0e0e0 1px, transparent 1px),
     linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-/* ================= HEADER ================= */
+/* ===== HEADER ===== */
 .top-bar {
-  width: 100%;
-  padding: 30px 24px;
+  padding: 30px 90px;
 }
 
 .top-inner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
@@ -30,66 +28,60 @@ body {
   border: 3px solid black;
   padding: 15px 30px;
   font-size: 24px;
+  text-decoration: none;
+  color: black;
 }
 
-/* Buscador */
+/* Search */
+.search-wrapper {
+  position: relative;
+}
+
 .search-box {
-  display: none;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: 3px solid black;
-  padding: 15px 30px;   
-  font-size: 24px;     
+  padding: 10px 20px;
+  width: 320px;
 }
-
 
 .search-box input {
   border: none;
   outline: none;
   background: transparent;
+  width: 100%;
 }
 
-/* Caja derecha (EterIA) */
-.right-box {
-  display: none;
+/* Lista resultados */
+.lista-resultados {
+  margin-top: 6px;
+  background: white;
   border: 3px solid black;
-  padding: 15px 30px;
-  font-size: 24px;
 }
 
-/* HOME */
-body.home .search-box {
-  display: flex;
+.resultado-item {
+  padding: 10px 14px;
+  cursor: pointer;
 }
 
-/* SUPERVISIONES */
-body.supervisiones .right-box {
-  display: inline-flex;
+.resultado-item:hover {
+  background: #f0f0f0;
 }
 
-/* ================= CONTENIDO ================= */
+/* ===== CONTENIDO ===== */
 .container {
   display: flex;
   justify-content: center;
   margin-top: 80px;
 }
 
-body.supervisiones .container {
-  margin-top: 120px;
-}
-
-/* Card principal */
 .card {
   width: 600px;
-  max-width: 800px;
   border: 3px solid black;
   background: white;
   padding: 60px;
   text-align: center;
-}
-
-.card.wide {
-  width: 800px;
 }
 
 .card h1 {
@@ -97,16 +89,9 @@ body.supervisiones .container {
   margin-bottom: 60px;
 }
 
-/* Texto secundario */
-.subtitle {
-  font-size: 18px;
-  margin-bottom: 40px;
-}
-
-/* ================= BOTONES ================= */
+/* Botones */
 .buttons {
   display: flex;
-  justify-content: space-between;
   gap: 20px;
 }
 
@@ -115,7 +100,6 @@ button {
   padding: 20px;
   border: 3px solid black;
   background: white;
-  font-size: 16px;
   cursor: pointer;
 }
 
@@ -123,49 +107,14 @@ button:hover {
   background: #f0f0f0;
 }
 
-button.small {
-  padding: 12px 20px;
-}
-
-button.main-action {
-  padding: 20px 40px;
-  font-size: 18px;
-}
-
-/* ================= UPLOAD ================= */
-.upload-box {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.upload-box input {
-  padding: 12px;
-  border: 3px solid black;
-  background: white;
-  width: 300px;
-}
-
-#resultado {
-  margin-top: 40px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-/* ================= MODAL ================= */
+/* ===== MODAL ===== */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(0,0,0,0.4);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
 }
 
 .modal.hidden {
@@ -175,54 +124,22 @@ button.main-action {
 .modal-content {
   background: white;
   border: 3px solid black;
-  padding: 50px;
-  width: 600px;
-  max-width: 90%;
+  padding: 40px;
   position: relative;
+  width: 600px;
 }
 
-/* Botón cerrar */
 .close-btn {
   position: absolute;
   top: 15px;
   right: 15px;
-  border: 3px solid black;
+  border: 2px solid black;
   background: white;
-  font-size: 18px;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-}
-
-.close-btn:hover {
-  background: #f0f0f0;
-}
-
-
-
-.resultados-lista {
-  position: absolute;
-  top: 110px; /* ajusta según tu header */
-  right: 90px;
-  width: 300px;
-  background: white;
-  border: 3px solid black;
-  z-index: 20;
-}
-
-.resultado-item {
-  padding: 12px 16px;
-  border-bottom: 2px solid black;
+  font-size: 20px;
   cursor: pointer;
 }
 
-.resultado-item:last-child {
-  border-bottom: none;
-}
 
-.resultado-item:hover {
-  background: #f0f0f0;
-}
 
 
 
