@@ -200,6 +200,29 @@ button.main-action {
 
 
 
+.resultados-lista {
+  position: absolute;
+  top: 110px; /* ajusta según tu header */
+  right: 90px;
+  width: 300px;
+  background: white;
+  border: 3px solid black;
+  z-index: 20;
+}
+
+.resultado-item {
+  padding: 12px 16px;
+  border-bottom: 2px solid black;
+  cursor: pointer;
+}
+
+.resultado-item:last-child {
+  border-bottom: none;
+}
+
+.resultado-item:hover {
+  background: #f0f0f0;
+}
 
 
 
