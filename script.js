@@ -57,17 +57,19 @@ Promise.all([
 ]).then(r=>personas=r.flat());
 
 /* Mostrar persona */
-function mostrarPersona(p){
-  resultado.innerHTML=`
-    <div class="card">
-      <h2>${formatearNombre(p.nombre)}</h2>
-      <p><strong>Evaluación:</strong> ${p.evaluacion || "Sin evaluar"}</p>
-      <p><strong>Tipo:</strong> ${p.tipo}</p>
-      <p><strong>Curso y semestre:</strong> ${p.curso} · ${p.semestre}</p>
-      <p><strong>Comentarios:</strong> ${p.comentarios || "-"}</p>
-    </div>`;
+function mostrarPersona(persona) {
+  resultado.innerHTML = `
+    <h2>${formatearNombre(persona.nombre)}</h2>
+
+    <p><strong>Evaluación:</strong> ${persona.evaluacion || "Sin evaluar"}</p>
+    <p><strong>Tipo:</strong> ${persona.tipo}</p>
+    <p><strong>Curso y semestre:</strong> ${persona.curso} · ${persona.semestre}</p>
+    <p><strong>Comentarios:</strong> ${persona.comentarios || "-"}</p>
+  `;
+
   modal.classList.remove("hidden");
 }
+
 
 /* Buscar */
 input.addEventListener("input",()=>{
