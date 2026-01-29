@@ -5,56 +5,54 @@
   <title>EterIA</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body class="home">
 
-  <!-- Header -->
+  <!-- HEADER -->
   <header class="top-bar">
     <div class="top-inner">
+
       <a href="index.html" class="logo">
-           COORDINACIÓN & CO.
+        COORDINACIÓN & CO.
       </a>
 
+      <div class="search-wrapper">
+        <div class="search-box">
+          <input type="text" placeholder="Buscar por nombre o RUT" />
+          <span class="icon">🔍</span>
+        </div>
 
-      <div class="search-box">
-         <input type="text" placeholder="Buscar por nombre o RUT" />
-         <span class="icon">🔍</span>
+        <!-- LISTA DE RESULTADOS -->
+        <div id="lista-resultados" class="lista-resultados"></div>
       </div>
 
-
-      <div class="right-box">EterIA</div>
     </div>
   </header>
 
-  <div id="lista-resultados"></div>
-
-
-  <!-- Card principal -->
+  <!-- CONTENIDO -->
   <main class="container">
     <div class="card">
       <h1>EterIA</h1>
 
       <div class="buttons">
-        <a href="seleccion.html">
-             <button>seleccionar ayudantes</button>
-        </a>
-        <a href="supervisiones.html">
-             <button>generar supervisiones</button>
-        </a>
+        <a href="seleccion.html"><button>Seleccionar ayudantes</button></a>
+        <a href="supervisiones.html"><button>Generar supervisiones</button></a>
       </div>
     </div>
   </main>
 
-<div id="modal" class="modal hidden">
-  <div class="modal-content">
-    <button class="close-btn">×</button>
-    <div id="resultado"></div>
+  <!-- MODAL -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn">×</button>
+      <div id="resultado"></div>
+    </div>
   </div>
-</div>
 
-
-<script src="script.js"></script>  
+  <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
