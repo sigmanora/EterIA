@@ -108,36 +108,54 @@ button:hover {
 }
 
 /* ===== MODAL ===== */
+/* Fondo del modal */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  z-index: 2000;
 }
 
+/* Oculto */
 .modal.hidden {
   display: none;
 }
 
+/* Ventana blanca */
 .modal-content {
+  position: relative;
+
   background: white;
   border: 3px solid black;
-  padding: 40px;
-  position: relative;
+
   width: 600px;
+  max-width: 90%;
+  padding: 50px 60px;
+
+  text-align: center;
 }
 
+/* Botón cerrar */
 .close-btn {
   position: absolute;
   top: 15px;
   right: 15px;
-  border: 2px solid black;
+
+  border: 3px solid black;
   background: white;
+
+  width: 36px;
+  height: 36px;
+
   font-size: 20px;
   cursor: pointer;
 }
+
 
 /* Contenedor del buscador */
 .search-wrapper {
@@ -173,6 +191,7 @@ button:hover {
 .resultado-item:hover {
   background: #f0f0f0;
 }
+
 
 
 
