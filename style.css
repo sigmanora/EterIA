@@ -139,6 +139,41 @@ button:hover {
   cursor: pointer;
 }
 
+/* Contenedor del buscador */
+.search-wrapper {
+  position: relative; /* referencia para el dropdown */
+}
+
+/* Lista de resultados */
+#lista-resultados {
+  position: absolute;
+  top: calc(100% + 6px); /* justo debajo del buscador */
+  right: 0;
+
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+
+  background: white;
+  border: 3px solid black;
+  z-index: 1000;
+}
+
+/* Cada persona */
+.resultado-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.resultado-item:last-child {
+  border-bottom: none;
+}
+
+.resultado-item:hover {
+  background: #f0f0f0;
+}
+
 
 
 
