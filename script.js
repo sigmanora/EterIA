@@ -63,6 +63,22 @@ function cargarHoja(url, tipo) {
     });
 }
 
+function mostrarPersona(persona) {
+  resultado.innerHTML = `
+    <div class="card">
+      <h2>${formatearNombre(persona.nombre)}</h2>
+
+      <p><strong>Evaluación:</strong> ${persona.evaluacion || "Sin evaluar"}</p>
+      <p><strong>Tipo:</strong> ${persona.tipo}</p>
+      <p><strong>Curso y semestre:</strong> ${persona.curso} · ${persona.semestre}</p>
+      <p><strong>Comentarios:</strong> ${persona.comentarios || "-"}</p>
+    </div>
+  `;
+
+  modal.classList.remove("hidden");
+}
+
+
 
 /* Cargar ambas hojas */
 Promise.all([
@@ -73,23 +89,39 @@ Promise.all([
 });
 
 /* Buscar */
+const lista = document.getElementById("lista-resultados");
+
 input.addEventListener("input", () => {
   const busqueda = normalizar(input.value);
+  lista.innerHTML = "";
 
-  if (busqueda.length < 2) {
-    resultado.innerHTML = "";
-    return;
-  }
+  if (busqueda.length < 2) return;
 
-  const encontrado = personas.find(p =>
+  const encontrados = personas.filter(p =>
     normalizar(p.nombre).includes(busqueda) ||
     normalizar(p.rut).includes(busqueda)
   );
 
-  if (!encontrado) {
-    resultado.innerHTML = "<p>No se encontró la persona.</p>";
+  if (encontrados.length === 0) {
+    lista.innerHTML = `<div class="resultado-item">No hay resultados</div>`;
     return;
   }
+
+  encontrados.forEach(persona => {
+    const item = document.createElement("div");
+    item.className = "resultado-item";
+    item.textContent = formatearNombre(persona.nombre);
+
+    item.addEventListener("click", () => {
+      mostrarPersona(persona);
+      lista.innerHTML = "";
+      input.value = "";
+    });
+
+    lista.appendChild(item);
+  });
+});
+
 
 resultado.innerHTML = `
   <div class="card">
