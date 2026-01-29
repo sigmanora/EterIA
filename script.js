@@ -1,7 +1,11 @@
-const AYUDANTES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
-const AUXILIARES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=657863670&single=true&output=csv";
+const AYUDANTES_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
+
+const AUXILIARES_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=657863670&single=true&output=csv";
 
 const input = document.querySelector(".search-box input");
+const lista = document.getElementById("lista-resultados");
 const resultado = document.getElementById("resultado");
 
 const modal = document.getElementById("modal");
@@ -11,10 +15,8 @@ closeBtn.addEventListener("click", () => {
   modal.classList.add("hidden");
 });
 
+/* ================= UTILIDADES ================= */
 
-let personas = [];
-
-/* Normalizar texto */
 function normalizar(texto = "") {
   return texto
     .toLowerCase()
@@ -22,16 +24,13 @@ function normalizar(texto = "") {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function formatearNombre(nombreCrudo = "") {
-  const limpio = nombreCrudo.replace(/"/g, "").trim();
-
+function formatearNombre(crudo = "") {
+  const limpio = crudo.replace(/"/g, "").trim();
   if (!limpio.includes(",")) return limpio;
 
-  const [apellido, nombre] = limpio.split(",").map(p => p.trim());
-
+  const [apellido, nombre] = limpio.split(",").map(t => t.trim());
   return `${nombre} ${apellido}`;
 }
-
 
 function parseCSVLine(line) {
   const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
@@ -40,6 +39,9 @@ function parseCSVLine(line) {
   ) || [];
 }
 
+/* ================= CARGA DE DATOS ================= */
+
+let personas = [];
 
 function cargarHoja(url, tipo) {
   return fetch(url)
@@ -48,58 +50,54 @@ function cargarHoja(url, tipo) {
       const filas = csv.split("\n").slice(1);
 
       return filas.map(fila => {
-        const columnas = parseCSVLine(fila);
-
+        const c = parseCSVLine(fila);
         return {
-          nombre: columnas[0],        // Apellido, Nombre
-          rut: columnas[1],
-          curso: columnas[2],
-          semestre: columnas[3],
-          evaluacion: columnas[4],
-          comentarios: columnas[5],
+          nombre: c[0],
+          rut: c[1],
+          curso: c[2],
+          semestre: c[3],
+          evaluacion: c[4],
+          comentarios: c[5],
           tipo
         };
       });
     });
 }
 
-function mostrarPersona(persona) {
-  resultado.innerHTML = `
-    <div class="card">
-      <h2>${formatearNombre(persona.nombre)}</h2>
-
-      <p><strong>Evaluación:</strong> ${persona.evaluacion || "Sin evaluar"}</p>
-      <p><strong>Tipo:</strong> ${persona.tipo}</p>
-      <p><strong>Curso y semestre:</strong> ${persona.curso} · ${persona.semestre}</p>
-      <p><strong>Comentarios:</strong> ${persona.comentarios || "-"}</p>
-    </div>
-  `;
-
-  modal.classList.remove("hidden");
-}
-
-
-
-/* Cargar ambas hojas */
 Promise.all([
   cargarHoja(AYUDANTES_URL, "Ayudante"),
   cargarHoja(AUXILIARES_URL, "Auxiliar de control")
-]).then(resultados => {
-  personas = resultados.flat();
+]).then(res => {
+  personas = res.flat();
 });
 
-/* Buscar */
-const lista = document.getElementById("lista-resultados");
+/* ================= MOSTRAR PERSONA ================= */
+
+function mostrarPersona(p) {
+  resultado.innerHTML = `
+    <div class="card">
+      <h2>${formatearNombre(p.nombre)}</h2>
+
+      <p><strong>Evaluación:</strong> ${p.evaluacion || "Sin evaluar"}</p>
+      <p><strong>Tipo:</strong> ${p.tipo}</p>
+      <p><strong>Curso y semestre:</strong> ${p.curso} · ${p.semestre}</p>
+      <p><strong>Comentarios:</strong> ${p.comentarios || "-"}</p>
+    </div>
+  `;
+  modal.classList.remove("hidden");
+}
+
+/* ================= BUSCADOR ================= */
 
 input.addEventListener("input", () => {
-  const busqueda = normalizar(input.value);
+  const q = normalizar(input.value);
   lista.innerHTML = "";
 
-  if (busqueda.length < 2) return;
+  if (q.length < 2) return;
 
   const encontrados = personas.filter(p =>
-    normalizar(p.nombre).includes(busqueda) ||
-    normalizar(p.rut).includes(busqueda)
+    normalizar(p.nombre).includes(q) ||
+    normalizar(p.rut).includes(q)
   );
 
   if (encontrados.length === 0) {
@@ -107,13 +105,13 @@ input.addEventListener("input", () => {
     return;
   }
 
-  encontrados.forEach(persona => {
+  encontrados.forEach(p => {
     const item = document.createElement("div");
     item.className = "resultado-item";
-    item.textContent = formatearNombre(persona.nombre);
+    item.textContent = formatearNombre(p.nombre);
 
     item.addEventListener("click", () => {
-      mostrarPersona(persona);
+      mostrarPersona(p);
       lista.innerHTML = "";
       input.value = "";
     });
@@ -122,19 +120,3 @@ input.addEventListener("input", () => {
   });
 });
 
-
-resultado.innerHTML = `
-  <div class="card">
-    <h2>${formatearNombre(encontrado.nombre)}</h2>
-
-    <p><strong>Evaluación:</strong> ${encontrado.evaluacion || "Sin evaluar"}</p>
-    <p><strong>Tipo:</strong> ${encontrado.tipo}</p>
-    <p><strong>Curso y semestre:</strong> ${encontrado.curso || "-"}</p>
-    <p><strong>Comentarios:</strong> ${encontrado.comentarios || "-"}</p>
-  </div>
-`;
-
-modal.classList.remove("hidden");
-
-
-});
