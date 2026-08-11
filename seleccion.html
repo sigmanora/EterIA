@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>EterIA — Selección de ayudantes</title>  <link rel="stylesheet" href="style.css">  <!-- Librería para leer archivos Excel -->  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>  <style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>EterIA — Selección de ayudantes</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>  <style>
     /* =========================================================
        ETERIA — SELECCIÓN
        ========================================================= */
@@ -192,7 +192,7 @@
 
     .selection-table {
       width: 100%;
-      min-width: 760px;
+      min-width: 1050px;
       border-collapse: collapse;
       font-size: 12.5px;
     }
@@ -237,6 +237,7 @@
     .postulante {
       color: var(--ink) !important;
       font-weight: 500;
+      min-width: 170px;
     }
 
 
@@ -301,6 +302,42 @@
 
 
     /* =========================================================
+       INFORMACIÓN / COMENTARIOS
+       ========================================================= */
+
+    .comment-cell {
+      min-width: 320px;
+      max-width: 480px;
+    }
+
+    .comment-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+
+    .comment-icon {
+      flex: none;
+      font-size: 13px;
+      margin-top: 1px;
+    }
+
+    .comment-text {
+      color: var(--ink-soft);
+      font-size: 11.5px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .comment-empty {
+      color: var(--ink-faint);
+      font-style: italic;
+      font-size: 11px;
+    }
+
+
+    /* =========================================================
        SIN RESULTADOS
        ========================================================= */
 
@@ -342,6 +379,7 @@
       }
 
     }
+
   </style></head><body class="seleccion">  <!-- =========================================================
        HEADER
        ========================================================= -->  <header class="top-bar"><div class="top-inner">
@@ -456,11 +494,11 @@
 
     <p class="courses-description">
       Selecciona un curso para revisar sus postulantes,
-      evaluación y créditos.
+      evaluación, créditos e información del registro.
     </p>
 
 
-    <!-- PESTAÑAS DE CURSOS -->
+    <!-- PESTAÑAS -->
 
     <div
       id="course-tabs"
@@ -483,22 +521,6 @@
        JAVASCRIPT
        ========================================================= -->  <script>
 
-    /*
-     * EterIA — Selección de ayudantes
-     *
-     * La página:
-     *
-     * 1. Lee el Excel de postulaciones.
-     * 2. Identifica automáticamente las hojas/cursos.
-     * 3. Cruza cada postulante con el registro de evaluaciones.
-     * 4. Busca primero por RUT.
-     * 5. Si no hay RUT, busca por nombre.
-     * 6. Muestra los resultados organizados por curso.
-     *
-     * No genera ni descarga ningún Excel.
-     */
-
-
     /* =========================================================
        CONFIGURACIÓN
        ========================================================= */
@@ -515,6 +537,14 @@
 
     const COLUMNA_CREDITOS =
       "Créditos aprobados";
+
+    /*
+     * IMPORTANTE:
+     * Esta es la columna que contiene la información
+     * / comentarios de la evaluación.
+     */
+    const COLUMNA_INFORMACION =
+      "INFORMACIÓN";
 
 
     /* =========================================================
@@ -574,77 +604,49 @@
        UTILIDADES
        ========================================================= */
 
-    function textoSeguro(
-      valor
-    ) {
+    function textoSeguro(valor) {
 
       if (
         valor === null ||
         valor === undefined
       ) {
-
         return "";
-
       }
 
-      return String(
-        valor
-      ).trim();
+      return String(valor).trim();
 
     }
 
 
-    function normalizarTexto(
-      valor = ""
-    ) {
+    function normalizarTexto(valor = "") {
 
-      return textoSeguro(
-        valor
-      )
-        .replace(
-          /"/g,
-          ""
-        )
-        .normalize(
-          "NFD"
-        )
-        .replace(
-          /[\u0300-\u036f]/g,
-          ""
-        )
+      return textoSeguro(valor)
+        .replace(/"/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .replace(
-          /\s+/g,
-          " "
-        )
+        .replace(/\s+/g, " ")
         .trim();
 
     }
 
 
-    function normalizarNombre(
-      valor = ""
-    ) {
+    function normalizarNombre(valor = "") {
 
       const limpio =
-        textoSeguro(
-          valor
-        )
-          .replace(
-            /"/g,
-            ""
-          )
+        textoSeguro(valor)
+          .replace(/"/g, "")
           .trim();
 
 
       /*
-       * Convierte:
+       * Permite comparar:
        *
-       * APELLIDO, NOMBRE
+       * PÉREZ, MARÍA
        *
-       * en:
+       * con:
        *
-       * NOMBRE APELLIDO
+       * María Pérez
        */
 
       if (
@@ -655,14 +657,10 @@
           limpio.split(",");
 
         const apellidos =
-          partes
-            .shift()
-            .trim();
+          partes.shift().trim();
 
         const nombres =
-          partes
-            .join(",")
-            .trim();
+          partes.join(",").trim();
 
         return normalizarTexto(
           `${nombres} ${apellidos}`
@@ -678,33 +676,22 @@
     }
 
 
-    function normalizarRut(
-      valor = ""
-    ) {
+    function normalizarRut(valor = "") {
 
-      return textoSeguro(
-        valor
-      )
+      return textoSeguro(valor)
         .toUpperCase()
-        .replace(
-          /[\s.\-]/g,
-          ""
-        );
+        .replace(/[\s.\-]/g, "");
 
     }
 
 
-    function parseNumero(
-      valor
-    ) {
+    function parseNumero(valor) {
 
       if (
         typeof valor === "number"
       ) {
 
-        return Number.isFinite(
-          valor
-        )
+        return Number.isFinite(valor)
           ? valor
           : null;
 
@@ -712,9 +699,7 @@
 
 
       const texto =
-        textoSeguro(
-          valor
-        );
+        textoSeguro(valor);
 
 
       if (!texto) {
@@ -725,43 +710,29 @@
       const numero =
         Number(
           texto
-            .replace(
-              /\s/g,
-              ""
-            )
-            .replace(
-              ",",
-              "."
-            )
+            .replace(/\s/g, "")
+            .replace(",", ".")
         );
 
 
-      return Number.isFinite(
-        numero
-      )
+      return Number.isFinite(numero)
         ? numero
         : null;
 
     }
 
 
-    function evaluacionNumero(
-      valor
-    ) {
+    function evaluacionNumero(valor) {
 
       const numero =
         parseInt(
-          textoSeguro(
-            valor
-          ),
+          textoSeguro(valor),
           10
         );
 
 
       return (
-        Number.isInteger(
-          numero
-        ) &&
+        Number.isInteger(numero) &&
         numero >= 1 &&
         numero <= 4
       )
@@ -786,24 +757,82 @@
 
 
     /* =========================================================
+       ENCONTRAR COLUMNA
+       ========================================================= */
+
+    function encontrarColumna(
+      cabeceras,
+      posiblesNombres
+    ) {
+
+      for (
+        const posible of posiblesNombres
+      ) {
+
+        const indice =
+          cabeceras.findIndex(
+            cabecera =>
+              normalizarTexto(cabecera) ===
+              normalizarTexto(posible)
+          );
+
+
+        if (
+          indice >= 0
+        ) {
+
+          return indice;
+
+        }
+
+      }
+
+
+      for (
+        const posible of posiblesNombres
+      ) {
+
+        const buscado =
+          normalizarTexto(posible);
+
+
+        const indice =
+          cabeceras.findIndex(
+            cabecera =>
+              normalizarTexto(cabecera)
+                .includes(buscado)
+          );
+
+
+        if (
+          indice >= 0
+        ) {
+
+          return indice;
+
+        }
+
+      }
+
+
+      return -1;
+
+    }
+
+
+    /* =========================================================
        CSV
        ========================================================= */
 
-    function parseCSV(
-      texto
-    ) {
+    function parseCSV(texto) {
 
-      const filas =
-        [];
+      const filas = [];
 
-      let fila =
-        [];
+      let fila = [];
 
-      let campo =
-        "";
+      let campo = "";
 
-      let dentroComillas =
-        false;
+      let dentroComillas = false;
 
 
       for (
@@ -829,7 +858,6 @@
           ) {
 
             campo += '"';
-
             i++;
 
           }
@@ -845,8 +873,7 @@
 
           else {
 
-            campo +=
-              caracter;
+            campo += caracter;
 
           }
 
@@ -865,12 +892,8 @@
           caracter === ","
         ) {
 
-          fila.push(
-            campo
-          );
-
-          campo =
-            "";
+          fila.push(campo);
+          campo = "";
 
         }
 
@@ -886,26 +909,19 @@
           caracter === "\n"
         ) {
 
-          fila.push(
-            campo
-          );
+          fila.push(campo);
 
-          filas.push(
-            fila
-          );
+          filas.push(fila);
 
-          fila =
-            [];
+          fila = [];
 
-          campo =
-            "";
+          campo = "";
 
         }
 
         else {
 
-          campo +=
-            caracter;
+          campo += caracter;
 
         }
 
@@ -917,13 +933,8 @@
         fila.length
       ) {
 
-        fila.push(
-          campo
-        );
-
-        filas.push(
-          fila
-        );
+        fila.push(campo);
+        filas.push(fila);
 
       }
 
@@ -934,7 +945,7 @@
 
 
     /* =========================================================
-       CARGAR REGISTRO DE EVALUACIONES
+       CARGAR REGISTRO
        ========================================================= */
 
     async function cargarRegistro() {
@@ -974,9 +985,7 @@
 
 
       const filas =
-        parseCSV(
-          texto
-        );
+        parseCSV(texto);
 
 
       if (
@@ -990,13 +999,95 @@
       }
 
 
+      const cabeceras =
+        filas[0];
+
+
+      const indiceNombre =
+        encontrarColumna(
+          cabeceras,
+          [
+            "Postulante",
+            "Nombre",
+            "Nombre completo",
+            "Alumno",
+            "Estudiante"
+          ]
+        );
+
+
+      const indiceRut =
+        encontrarColumna(
+          cabeceras,
+          [
+            "RUT",
+            "R.U.T.",
+            "Rut postulante"
+          ]
+        );
+
+
+      const indiceEvaluacion =
+        encontrarColumna(
+          cabeceras,
+          [
+            "Evaluación",
+            "Evaluacion",
+            "Evaluación final",
+            "Puntaje",
+            "Nota evaluación"
+          ]
+        );
+
+
       /*
-       * Registro:
-       *
-       * columna 1 → nombre
-       * columna 2 → RUT
-       * columna 3 → evaluación
+       * AHORA BUSCAMOS ESPECÍFICAMENTE
+       * LA COLUMNA "INFORMACIÓN".
        */
+
+      const indiceInformacion =
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_INFORMACION
+          ]
+        );
+
+
+      const nombreCol =
+        indiceNombre >= 0
+          ? indiceNombre
+          : 0;
+
+
+      const rutCol =
+        indiceRut >= 0
+          ? indiceRut
+          : 1;
+
+
+      const evaluacionCol =
+        indiceEvaluacion >= 0
+          ? indiceEvaluacion
+          : 2;
+
+
+      /*
+       * Si no encontramos INFORMACIÓN,
+       * NO usamos otra columna como reemplazo.
+       * Esto evita mostrar datos incorrectos.
+       */
+
+      if (
+        indiceInformacion < 0
+      ) {
+
+        console.warn(
+          'No se encontró la columna "INFORMACIÓN".'
+        );
+
+      }
+
 
       registroAyudantes =
         filas
@@ -1004,7 +1095,7 @@
           .filter(
             fila =>
               textoSeguro(
-                fila[0]
+                fila[nombreCol]
               )
           )
           .map(
@@ -1012,21 +1103,51 @@
 
               nombre:
                 textoSeguro(
-                  fila[0]
+                  fila[nombreCol]
                 ),
 
               rut:
                 textoSeguro(
-                  fila[1]
+                  fila[rutCol]
                 ),
 
               evaluacion:
                 evaluacionNumero(
-                  fila[2]
-                )
+                  fila[evaluacionCol]
+                ),
+
+              informacion:
+                indiceInformacion >= 0
+                  ? textoSeguro(
+                      fila[
+                        indiceInformacion
+                      ]
+                    )
+                  : ""
 
             })
           );
+
+
+      console.log(
+        "Registro cargado:",
+        {
+          columnas:
+            cabeceras,
+          nombre:
+            cabeceras[nombreCol],
+          rut:
+            cabeceras[rutCol],
+          evaluacion:
+            cabeceras[evaluacionCol],
+          informacion:
+            indiceInformacion >= 0
+              ? cabeceras[
+                  indiceInformacion
+                ]
+              : "NO ENCONTRADA"
+        }
+      );
 
 
       return registroAyudantes;
@@ -1050,8 +1171,7 @@
 
 
       for (
-        const persona
-        of registro
+        const persona of registro
       ) {
 
         const rut =
@@ -1067,9 +1187,7 @@
 
         if (
           rut &&
-          !porRut.has(
-            rut
-          )
+          !porRut.has(rut)
         ) {
 
           porRut.set(
@@ -1082,9 +1200,7 @@
 
         if (
           nombre &&
-          !porNombre.has(
-            nombre
-          )
+          !porNombre.has(nombre)
         ) {
 
           porNombre.set(
@@ -1106,10 +1222,10 @@
 
 
     /* =========================================================
-       BUSCAR EVALUACIÓN
+       BUSCAR PERSONA
        ========================================================= */
 
-    function buscarEvaluacion(
+    function buscarPersona(
       indices,
       rut,
       nombre
@@ -1122,18 +1238,14 @@
       if (rut) {
 
         const persona =
-          indices.porRut.get(
-            rut
-          );
+          indices.porRut.get(rut);
 
 
         if (
-          persona &&
-          persona.evaluacion !==
-            null
+          persona
         ) {
 
-          return persona.evaluacion;
+          return persona;
 
         }
 
@@ -1141,24 +1253,21 @@
 
 
       /*
-       * Después nombre.
+       * Si no hay coincidencia por RUT,
+       * buscamos por nombre.
        */
 
       if (nombre) {
 
         const persona =
-          indices.porNombre.get(
-            nombre
-          );
+          indices.porNombre.get(nombre);
 
 
         if (
-          persona &&
-          persona.evaluacion !==
-            null
+          persona
         ) {
 
-          return persona.evaluacion;
+          return persona;
 
         }
 
@@ -1171,7 +1280,7 @@
 
 
     /* =========================================================
-       ENCONTRAR CABECERA
+       ENCONTRAR CABECERA DEL EXCEL
        ========================================================= */
 
     function encontrarCabecera(
@@ -1186,15 +1295,13 @@
 
 
       for (
-        let fila =
-          rango.s.r;
+        let fila = rango.s.r;
         fila <= rango.e.r;
         fila++
       ) {
 
         for (
-          let columna =
-            rango.s.c;
+          let columna = rango.s.c;
           columna <= rango.e.c;
           columna++
         ) {
@@ -1209,12 +1316,8 @@
 
 
           if (
-            normalizarTexto(
-              celda?.v
-            ) ===
-            normalizarTexto(
-              COLUMNA_NOMBRE
-            )
+            normalizarTexto(celda?.v) ===
+            normalizarTexto(COLUMNA_NOMBRE)
           ) {
 
             return fila;
@@ -1262,13 +1365,11 @@
         );
 
 
-      const cabeceras =
-        [];
+      const cabeceras = [];
 
 
       for (
-        let columna =
-          rango.s.c;
+        let columna = rango.s.c;
         columna <= rango.e.c;
         columna++
       ) {
@@ -1287,19 +1388,11 @@
       }
 
 
-      /*
-       * Nombre.
-       */
-
       const indiceNombre =
         cabeceras.findIndex(
           columna =>
-            normalizarTexto(
-              columna
-            ) ===
-            normalizarTexto(
-              COLUMNA_NOMBRE
-            )
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_NOMBRE)
         );
 
 
@@ -1312,44 +1405,21 @@
       }
 
 
-      /*
-       * Nota.
-       */
-
       const indiceNota =
         cabeceras.findIndex(
           columna =>
-            normalizarTexto(
-              columna
-            ) ===
-            normalizarTexto(
-              COLUMNA_NOTA
-            )
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_NOTA)
         );
 
-
-      /*
-       * Créditos.
-       */
 
       const indiceCreditos =
         cabeceras.findIndex(
           columna =>
-            normalizarTexto(
-              columna
-            ) ===
-            normalizarTexto(
-              COLUMNA_CREDITOS
-            )
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_CREDITOS)
         );
 
-
-      /*
-       * RUT.
-       *
-       * Primero buscamos una columna
-       * llamada RUT.
-       */
 
       let indiceRut =
         cabeceras.findIndex(
@@ -1371,31 +1441,23 @@
 
 
       /*
-       * Compatibilidad con el Excel
-       * original: columna G.
+       * Compatibilidad con el Excel anterior.
        */
 
       if (
         indiceRut < 0
       ) {
 
-        indiceRut =
-          6;
+        indiceRut = 6;
 
       }
 
 
-      const postulantes =
-        [];
+      const postulantes = [];
 
-
-      /*
-       * Leer postulantes.
-       */
 
       for (
-        let fila =
-          filaCabecera + 1;
+        let fila = filaCabecera + 1;
         fila <= rango.e.r;
         fila++
       ) {
@@ -1443,12 +1505,24 @@
           );
 
 
-        const evaluacion =
-          buscarEvaluacion(
+        const persona =
+          buscarPersona(
             indices,
             rut,
             nombre
           );
+
+
+        const evaluacion =
+          persona
+            ? persona.evaluacion
+            : null;
+
+
+        const informacion =
+          persona
+            ? persona.informacion
+            : "";
 
 
         const nota =
@@ -1489,7 +1563,9 @@
 
           evaluacion,
 
-          creditos
+          creditos,
+
+          informacion
 
         });
 
@@ -1497,11 +1573,15 @@
 
 
       /*
-       * Orden:
+       * Ordenamos:
        *
-       * 4 → 3 → 2 → 1 → sin evaluación
+       * Evaluación 4
+       * Evaluación 3
+       * Evaluación 2
+       * Evaluación 1
+       * Sin evaluación
        *
-       * En empate:
+       * Dentro de cada evaluación:
        * mayor nota primero.
        */
 
@@ -1567,7 +1647,7 @@
 
 
     /* =========================================================
-       PROCESAR EXCEL
+       PROCESAR ARCHIVO
        ========================================================= */
 
     async function procesarArchivo() {
@@ -1631,14 +1711,8 @@
           );
 
 
-        cursos =
-          [];
+        cursos = [];
 
-
-        /*
-         * Cada hoja del Excel
-         * representa un curso.
-         */
 
         for (
           const nombreHoja
@@ -1741,25 +1815,11 @@
       valor
     ) {
 
-      return textoSeguro(
-        valor
-      )
-        .replace(
-          /&/g,
-          "&amp;"
-        )
-        .replace(
-          /</g,
-          "&lt;"
-        )
-        .replace(
-          />/g,
-          "&gt;"
-        )
-        .replace(
-          /"/g,
-          "&quot;"
-        );
+      return textoSeguro(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 
     }
 
@@ -1924,6 +1984,10 @@
                     Créditos
                   </th>
 
+                  <th>
+                    Información
+                  </th>
+
                 </tr>
 
               </thead>
@@ -1946,7 +2010,7 @@
 
 
     /* =========================================================
-       FILAS DE LA TABLA
+       FILAS
        ========================================================= */
 
     function renderFilas(
@@ -1957,10 +2021,6 @@
         .map(
           (persona, indice) => {
 
-            /*
-             * Evaluación.
-             */
-
             let claseEvaluacion =
               "evaluation-none";
 
@@ -1969,8 +2029,7 @@
 
 
             if (
-              persona.evaluacion !==
-              null
+              persona.evaluacion !== null
             ) {
 
               textoEvaluacion =
@@ -1984,10 +2043,6 @@
 
             }
 
-
-            /*
-             * Créditos.
-             */
 
             const pocosCreditos =
               persona.creditos !== null &&
@@ -2010,10 +2065,6 @@
                 : "";
 
 
-            /*
-             * Nota.
-             */
-
             const nota =
               persona.nota === null
                 ? "—"
@@ -2025,16 +2076,36 @@
                   );
 
 
-            /*
-             * RUT.
-             */
-
             const rut =
               persona.rut
                 ? escaparHTML(
                     persona.rut
                   )
                 : "—";
+
+
+            const informacion =
+              persona.informacion
+                ? `
+                  <div class="comment-box">
+
+                    <span class="comment-icon">
+                      💬
+                    </span>
+
+                    <span class="comment-text">
+                      ${escaparHTML(
+                        persona.informacion
+                      )}
+                    </span>
+
+                  </div>
+                `
+                : `
+                  <span class="comment-empty">
+                    Sin información
+                  </span>
+                `;
 
 
             return `
@@ -2083,6 +2154,13 @@
                   }
 
                   ${avisoCreditos}
+
+                </td>
+
+
+                <td class="comment-cell">
+
+                  ${informacion}
 
                 </td>
 
