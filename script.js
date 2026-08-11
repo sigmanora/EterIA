@@ -28,9 +28,31 @@ function formatearNombre(raw="") {
   return `${n} ${a}`;
 }
 
-function parseCSV(line) {
-  const r = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
-  return line?.match(r)?.map(v=>v.replace(/^"|"$/g,"")) || [];
+function parseCSVCompleto(texto) {
+  const filas = [];
+  let fila = [];
+  let campo = "";
+  let dentroComillas = false;
+
+  for (let i = 0; i < texto.length; i++) {
+    const char = texto[i];
+    const sig = texto[i + 1];
+
+    if (dentroComillas) {
+      if (char === '"' && sig === '"') { campo += '"'; i++; }
+      else if (char === '"') { dentroComillas = false; }
+      else { campo += char; }
+    } else {
+      if (char === '"') dentroComillas = true;
+      else if (char === ",") { fila.push(campo); campo = ""; }
+      else if (char === "\r") { /* se ignora, el salto real es \n */ }
+      else if (char === "\n") { fila.push(campo); filas.push(fila); fila = []; campo = ""; }
+      else campo += char;
+    }
+  }
+  if (campo.length > 0 || fila.length > 0) { fila.push(campo); filas.push(fila); }
+
+  return filas;
 }
 
 /* Parsea un bloque individual "SEMESTRE (CURSO): Comentario" */
@@ -41,18 +63,18 @@ function parseBloque(bloque) {
   }
   m = bloque.match(/^\s*(\d{4}-\d)\s*:\s*([\s\S]*)$/);
   if (m) {
-    return { semestre: m[1], curso: "-", comentarios: m[2].trim() || "-" };
+    return { semestre: m[1], curso: "Sin información", comentarios: m[2].trim() || "-" };
   }
   m = bloque.match(/^\s*(\d{4}-\d)\s*$/);
   if (m) {
-    return { semestre: m[1], curso: "-", comentarios: "-" };
+    return { semestre: m[1], curso: "Sin información", comentarios: "-" };
   }
   // Sin semestre identificable: puede venir como "MA1101 - comentario" o similar
   m = bloque.match(/^:?\s*(MA\d{3,4})\s*[-:]\s*([\s\S]*)$/i);
   if (m) {
-    return { semestre: "-", curso: m[1].toUpperCase(), comentarios: m[2].trim() || "-" };
+    return { semestre: "Sin información", curso: m[1].toUpperCase(), comentarios: m[2].trim() || "-" };
   }
-  return { semestre: "-", curso: "-", comentarios: bloque.trim() };
+  return { semestre: "Sin información", curso: "Sin información", comentarios: bloque.trim() };
 }
 
 /* Parsea la columna INFORMACIÓN, que puede traer varios bloques semestre-curso-comentario
@@ -76,16 +98,16 @@ function parseInformacion(info="") {
 /* Cargar hojas */
 function cargarHoja(url,tipo){
   return fetch(url).then(r=>r.text()).then(csv=>{
-    return csv.split("\n").slice(1).map(f=>{
-      const c = parseCSV(f);
-      return {
+    return parseCSVCompleto(csv)
+      .slice(1)
+      .filter(c => c[0])
+      .map(c => ({
         nombre:c[0],
         rut:c[1],
         evaluacion:c[2],
         evaluaciones: parseInformacion(c[3]),
         tipo
-      };
-    });
+      }));
   });
 }
 
