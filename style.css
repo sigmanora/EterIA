@@ -215,3 +215,9 @@ button:hover {
   border-top: 1px dashed black;
   margin: 20px 0;
 }
+
+/* Evita que el contenido del modal quede cortado en pantallas chicas */
+.modal-content {
+  max-height: 85vh;
+  overflow-y: auto;
+}
