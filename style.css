@@ -197,3 +197,10 @@ button:hover {
 
 
 
+
+/* Estrellas de evaluación */
+.estrellas {
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #d4a017;
+}
