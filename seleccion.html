@@ -1,562 +1,2119 @@
-/*
- * EterIA — Selección de ayudantes
- * Vista previa + generación del Excel final.
- */
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>EterIA — Selección de ayudantes</title>  <link rel="stylesheet" href="style.css">  <!-- SheetJS para leer y generar archivos Excel -->  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>  <style>
+    /* =========================================================
+       EterIA — Estilos específicos de Selección
+       ========================================================= */
 
-const AYUDANTES_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
-
-const ARCHIVO_EVALUACION = "Evaluación ayudante";
-const COLUMNA_NOMBRE = "Postulante";
-const COLUMNA_RUT = "Unnamed: 6";
-const COLUMNA_NOTA = "Nota Curso (mínimo 5,0)";
-const COLUMNA_CREDITOS = "Créditos aprobados";
-
-const archivoInput = document.getElementById("archivo");
-const botonSubir = document.querySelector(".upload-button");
-const botonGenerar = document.getElementById("generar");
-const nombreArchivo = document.getElementById("nombre-archivo");
-const estado = document.getElementById("estado");
-const preview = document.getElementById("preview");
-const summary = document.getElementById("summary");
-const sheetTabs = document.getElementById("sheet-tabs");
-const tableContainer = document.getElementById("table-container");
-const sheetInfo = document.getElementById("sheet-info");
-
-let archivoSeleccionado = null;
-let registroAyudantes = null;
-let workbookProcesado = null;
-let resultadosHojas = [];
-let hojaActiva = 0;
-
-function textoSeguro(valor) {
-  return valor == null ? "" : String(valor).trim();
-}
-
-function normalizarTexto(valor = "") {
-  return textoSeguro(valor)
-    .replace(/"/g, "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function normalizarNombre(valor = "") {
-  const limpio = textoSeguro(valor).replace(/"/g, "").trim();
-  if (limpio.includes(",")) {
-    const partes = limpio.split(",");
-    const apellidos = partes.shift().trim();
-    const nombres = partes.join(",").trim();
-    return normalizarTexto(`${nombres} ${apellidos}`);
-  }
-  return normalizarTexto(limpio);
-}
-
-function normalizarRut(valor = "") {
-  return textoSeguro(valor).toUpperCase().replace(/[\s.\-]/g, "");
-}
-
-function parseNumero(valor) {
-  if (typeof valor === "number") return Number.isFinite(valor) ? valor : null;
-  const texto = textoSeguro(valor);
-  if (!texto) return null;
-  const numero = Number(texto.replace(/\s/g, "").replace(",", "."));
-  return Number.isFinite(numero) ? numero : null;
-}
-
-function evaluacionNumero(valor) {
-  const n = parseInt(textoSeguro(valor), 10);
-  return Number.isInteger(n) && n >= 1 && n <= 4 ? n : null;
-}
-
-function mostrarEstado(mensaje, tipo = "") {
-  estado.textContent = mensaje;
-  estado.className = `status ${tipo}`.trim();
-}
-
-function parseCSVCompleto(texto) {
-  const filas = [];
-  let fila = [], campo = "", dentroComillas = false;
-
-  for (let i = 0; i < texto.length; i++) {
-    const char = texto[i], sig = texto[i + 1];
-
-    if (dentroComillas) {
-      if (char === '"' && sig === '"') { campo += '"'; i++; }
-      else if (char === '"') dentroComillas = false;
-      else campo += char;
-    } else if (char === '"') {
-      dentroComillas = true;
-    } else if (char === ",") {
-      fila.push(campo); campo = "";
-    } else if (char === "\r") {
-      // ignorar
-    } else if (char === "\n") {
-      fila.push(campo); filas.push(fila);
-      fila = []; campo = "";
-    } else {
-      campo += char;
+    .selection-card {
+      width: min(1200px, 100%);
+      max-width: none !important;
     }
-  }
 
-  if (campo.length || fila.length) {
-    fila.push(campo); filas.push(fila);
-  }
-  return filas;
-}
-
-async function cargarRegistroAyudantes() {
-  if (registroAyudantes) return registroAyudantes;
-
-  const respuesta = await fetch(AYUDANTES_URL, { cache: "no-store" });
-  if (!respuesta.ok) throw new Error("No se pudo acceder al registro de ayudantes.");
-
-  const filas = parseCSVCompleto(await respuesta.text());
-  if (!filas.length) throw new Error("El registro de ayudantes está vacío.");
-
-  registroAyudantes = filas.slice(1)
-    .filter(fila => textoSeguro(fila[0]))
-    .map(fila => ({
-      nombre: textoSeguro(fila[0]),
-      rut: textoSeguro(fila[1]),
-      evaluacion: evaluacionNumero(fila[2])
-    }));
-
-  return registroAyudantes;
-}
-
-function construirIndices(registro) {
-  const porRut = new Map(), porNombre = new Map();
-
-  for (const persona of registro) {
-    const rut = normalizarRut(persona.rut);
-    const nombre = normalizarNombre(persona.nombre);
-
-    if (rut && !porRut.has(rut)) porRut.set(rut, persona);
-    if (nombre && !porNombre.has(nombre)) porNombre.set(nombre, persona);
-  }
-  return { porRut, porNombre };
-}
-
-function encontrarFilaCabecera(hoja) {
-  const rango = XLSX.utils.decode_range(hoja["!ref"] || "A1:A1");
-  for (let r = rango.s.r; r <= rango.e.r; r++) {
-    for (let c = rango.s.c; c <= rango.e.c; c++) {
-      const celda = hoja[XLSX.utils.encode_cell({ r, c })];
-      if (normalizarTexto(celda?.v) === normalizarTexto(COLUMNA_NOMBRE)) return r;
+    .selection-card .subtitle {
+      max-width: 760px;
     }
-  }
-  return -1;
-}
 
-function obtenerCabeceras(hoja, filaCabecera) {
-  const rango = XLSX.utils.decode_range(hoja["!ref"]);
-  const cabeceras = [];
-  for (let c = rango.s.c; c <= rango.e.c; c++) {
-    cabeceras.push(textoSeguro(hoja[XLSX.utils.encode_cell({ r: filaCabecera, c })]?.v));
-  }
-  return cabeceras;
-}
-
-function encontrarIndiceCabecera(cabeceras, nombre) {
-  return cabeceras.findIndex(c => normalizarTexto(c) === normalizarTexto(nombre));
-}
-
-function buscarEvaluacion(indices, rut, nombre) {
-  if (rut) {
-    const persona = indices.porRut.get(rut);
-    if (persona && persona.evaluacion != null) return persona.evaluacion;
-  }
-  if (nombre) {
-    const persona = indices.porNombre.get(nombre);
-    if (persona && persona.evaluacion != null) return persona.evaluacion;
-  }
-  return null;
-}
-
-function procesarHoja(hoja, nombreHoja, indicesRegistro) {
-  const filaCabecera = encontrarFilaCabecera(hoja);
-  if (filaCabecera < 0) return null;
-
-  const cabeceras = obtenerCabeceras(hoja, filaCabecera);
-  const idxNombre = encontrarIndiceCabecera(cabeceras, COLUMNA_NOMBRE);
-  const idxNota = encontrarIndiceCabecera(cabeceras, COLUMNA_NOTA);
-  const idxCreditos = encontrarIndiceCabecera(cabeceras, COLUMNA_CREDITOS);
-
-  if (idxNombre < 0) return null;
-
-  let idxRut = cabeceras.findIndex(c => {
-    const n = normalizarTexto(c);
-    return n === "rut" || n === "r.u.t." || n === "rut postulante";
-  });
-  if (idxRut < 0) idxRut = cabeceras.indexOf(COLUMNA_RUT);
-  if (idxRut < 0) idxRut = 6;
-
-  const rango = XLSX.utils.decode_range(hoja["!ref"]);
-  const filas = [];
-
-  for (let r = filaCabecera + 1; r <= rango.e.r; r++) {
-    const nombreOriginal = textoSeguro(
-      hoja[XLSX.utils.encode_cell({ r, c: idxNombre })]?.v
-    );
-    if (!nombreOriginal) continue;
-
-    const rut = normalizarRut(
-      hoja[XLSX.utils.encode_cell({ r, c: idxRut })]?.v
-    );
-    const nombre = normalizarNombre(nombreOriginal);
-
-    const evaluacion = buscarEvaluacion(indicesRegistro, rut, nombre);
-    const nota = idxNota >= 0
-      ? parseNumero(hoja[XLSX.utils.encode_cell({ r, c: idxNota })]?.v)
-      : null;
-    const creditos = idxCreditos >= 0
-      ? parseNumero(hoja[XLSX.utils.encode_cell({ r, c: idxCreditos })]?.v)
-      : null;
-
-    filas.push({
-      filaOriginal: r,
-      nombre: nombreOriginal,
-      rut: textoSeguro(hoja[XLSX.utils.encode_cell({ r, c: idxRut })]?.v),
-      evaluacion, nota, creditos
-    });
-  }
-
-  filas.sort((a, b) => {
-    const ea = a.evaluacion == null ? -1 : a.evaluacion;
-    const eb = b.evaluacion == null ? -1 : b.evaluacion;
-    if (ea !== eb) return eb - ea;
-
-    const na = a.nota == null ? -Infinity : a.nota;
-    const nb = b.nota == null ? -Infinity : b.nota;
-    if (na !== nb) return nb - na;
-
-    return a.filaOriginal - b.filaOriginal;
-  });
-
-  return {
-    nombre: nombreHoja,
-    hoja,
-    filaCabecera,
-    cabeceras,
-    idxNombre,
-    idxNota,
-    idxCreditos,
-    filas,
-    rango
-  };
-}
-
-function estiloBase(celda) {
-  return {
-    ...(celda?.s || {}),
-    alignment: { ...(celda?.s?.alignment || {}), vertical: "top" }
-  };
-}
-
-function aplicarEstiloEvaluacion(hoja, fila, columna, evaluacion) {
-  const direccion = XLSX.utils.encode_cell({ r: fila, c: columna });
-  const celda = hoja[direccion] || { t: "s", v: "" };
-  const estilo = estiloBase(celda);
-
-  if (evaluacion === 3 || evaluacion === 4) {
-    estilo.fill = { patternType: "solid", fgColor: { rgb: "C6EFCE" } };
-    estilo.font = { ...(estilo.font || {}), color: { rgb: "006100" }, bold: true };
-  } else if (evaluacion === 1 || evaluacion === 2) {
-    estilo.fill = { patternType: "solid", fgColor: { rgb: "FFC7CE" } };
-    estilo.font = { ...(estilo.font || {}), color: { rgb: "9C0006" }, bold: true };
-  }
-
-  celda.s = estilo;
-  celda.t = evaluacion == null ? "s" : "n";
-  celda.v = evaluacion ?? "";
-  hoja[direccion] = celda;
-}
-
-function aplicarEstiloCreditos(hoja, fila, columna, creditos) {
-  if (creditos == null || creditos >= 120) return;
-
-  const direccion = XLSX.utils.encode_cell({ r: fila, c: columna });
-  const celda = hoja[direccion] || { t: "n", v: creditos };
-  const estilo = estiloBase(celda);
-
-  estilo.fill = { patternType: "solid", fgColor: { rgb: "FFC7CE" } };
-  estilo.font = { ...(estilo.font || {}), color: { rgb: "9C0006" }, bold: true };
-
-  celda.s = estilo;
-  hoja[direccion] = celda;
-}
-
-function escribirValor(hoja, fila, columna, valor) {
-  const direccion = XLSX.utils.encode_cell({ r: fila, c: columna });
-  const celda = hoja[direccion] || {};
-  celda.v = valor == null ? "" : valor;
-  celda.t = typeof celda.v === "number" ? "n" : "s";
-  hoja[direccion] = celda;
-}
-
-function aplicarProcesamientoExcel(resultado) {
-  const { hoja, filaCabecera, cabeceras, filas, idxCreditos, rango } = resultado;
-  const columnaEvaluacion = rango.e.c + 1;
-
-  escribirValor(hoja, filaCabecera, columnaEvaluacion, ARCHIVO_EVALUACION);
-
-  // Guardamos los valores completos antes de reordenar.
-  const filasOriginales = new Map();
-  for (const item of filas) {
-    const valores = [];
-    for (let c = rango.s.c; c <= rango.e.c; c++) {
-      const celda = hoja[XLSX.utils.encode_cell({ r: item.filaOriginal, c })];
-      valores.push(celda ? celda.v : "");
+    .selection-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
     }
-    filasOriginales.set(item.filaOriginal, valores);
-  }
 
-  filas.forEach((item, i) => {
-    const destino = filaCabecera + 1 + i;
-    const valores = filasOriginales.get(item.filaOriginal);
+    .selection-actions .main-action {
+      width: auto;
+      min-width: 220px;
+      margin-top: 0;
+    }
 
-    for (let c = rango.s.c; c <= rango.e.c; c++) {
-      const valor = valores[c - rango.s.c];
-      const origen = hoja[XLSX.utils.encode_cell({ r: item.filaOriginal, c })];
-      const destinoCell = XLSX.utils.encode_cell({ r: destino, c });
-      hoja[destinoCell] = {
-        ...(origen || {}),
-        v: valor,
-        t: origen?.t || (typeof valor === "number" ? "n" : "s")
+    .upload-box {
+      width: 100%;
+    }
+
+    .file-name {
+      margin-top: 10px;
+      color: var(--ink-soft);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      min-height: 16px;
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status.loading {
+      border-color: rgba(240, 185, 77, 0.35);
+      color: var(--gold);
+    }
+
+    .status.success {
+      border-color: rgba(80, 200, 120, 0.35);
+      color: #8ee6a8;
+    }
+
+    .status.error {
+      border-color: rgba(217, 70, 63, 0.45);
+      color: #ff8b84;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== Vista previa ===== */
+
+    #preview {
+      margin-top: 32px;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .preview-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .preview-description {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ===== Resumen ===== */
+
+    #summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .summary-card {
+      min-height: 82px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-soft);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .summary-number {
+      font-family: var(--font-display);
+      font-size: 23px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .summary-label {
+      color: var(--ink-soft);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    /* ===== Pestañas de hojas ===== */
+
+    #sheet-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 12px;
+      scrollbar-width: thin;
+    }
+
+    .sheet-tab {
+      flex: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink-soft);
+      padding: 9px 13px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .sheet-tab:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+    }
+
+    .sheet-tab.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    #sheet-info {
+      margin: 8px 0 14px;
+      color: var(--ink-faint);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      line-height: 1.5;
+    }
+
+    /* ===== Tabla ===== */
+
+    #table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .preview-table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .preview-table th {
+      padding: 13px 14px;
+      text-align: left;
+      background: var(--bg-soft);
+      color: var(--ink-faint);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .preview-table td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      color: var(--ink-soft);
+      vertical-align: middle;
+    }
+
+    .preview-table tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    .preview-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .preview-table .rank {
+      width: 48px;
+      color: var(--ink-faint);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .evaluation-cell {
+      display: inline-flex;
+      min-width: 32px;
+      height: 28px;
+      padding: 0 8px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .evaluation-good {
+      color: #8ee6a8;
+      background: rgba(46, 160, 67, 0.14);
+      border: 1px solid rgba(46, 160, 67, 0.25);
+    }
+
+    .evaluation-bad {
+      color: #ff8b84;
+      background: rgba(217, 70, 63, 0.12);
+      border: 1px solid rgba(217, 70, 63, 0.25);
+    }
+
+    .evaluation-none {
+      color: var(--ink-faint);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+
+    .credits-warning {
+      color: #ff8b84 !important;
+      font-weight: 600;
+    }
+
+    .credit-badge {
+      display: inline-block;
+      margin-left: 7px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: rgba(217, 70, 63, 0.12);
+      color: #ff8b84;
+      border: 1px solid rgba(217, 70, 63, 0.22);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .empty-preview {
+      padding: 35px;
+      text-align: center;
+      color: var(--ink-faint);
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed !important;
+      transform: none !important;
+      filter: none !important;
+    }
+
+    @media (max-width: 720px) {
+      .selection-card {
+        padding: 28px 20px !important;
+      }
+
+      .selection-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .selection-actions .main-action {
+        width: 100%;
+      }
+
+      #summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style></head><body class="seleccion">  <!-- =========================================================
+       HEADER
+       ========================================================= -->  <header class="top-bar">
+    <div class="top-inner">  <a href="index.html" class="logo">
+    COORDINACIÓN &amp; CO.
+  </a>
+
+  <div class="search-box">
+    <input type="text" placeholder="Buscar">
+    <span class="icon">🔍</span>
+  </div>
+
+  <div class="right-box">
+    EterIA
+  </div>
+
+</div>
+
+  </header>  <!-- =========================================================
+       CONTENIDO
+       ========================================================= -->  <main class="container"><div class="card wide selection-card">
+
+  <span class="badge">
+    Paso 1 · Selección
+  </span>
+
+  <h1 style="margin: 0 0 18px; font-family: var(--font-display); font-size: 42px; line-height: 1.05;">
+    Selección de ayudantes
+  </h1>
+
+  <p class="subtitle">
+    Sube el archivo Excel con las postulaciones para cruzarlo con el registro
+    de evaluaciones. Podrás revisar la evaluación, nota y créditos de cada
+    postulante antes de generar el archivo final.
+  </p>
+
+
+  <!-- =====================================================
+       SUBIR ARCHIVO
+       ===================================================== -->
+  <div class="upload-box">
+
+    <input
+      type="file"
+      id="archivo"
+      accept=".xlsx,.xls"
+    >
+
+  </div>
+
+  <div id="nombre-archivo" class="file-name"></div>
+
+
+  <!-- =====================================================
+       ACCIONES
+       ===================================================== -->
+  <div class="selection-actions">
+
+    <button
+      id="generar"
+      class="main-action"
+      type="button"
+      disabled
+    >
+      Generar archivo
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       ESTADO
+       ===================================================== -->
+  <div id="estado" class="status">
+    Selecciona un archivo Excel para comenzar.
+  </div>
+
+
+  <!-- =====================================================
+       VISTA PREVIA
+       ===================================================== -->
+  <section id="preview" class="hidden">
+
+    <div class="preview-header">
+
+      <div>
+        <h2 class="preview-title">
+          Vista previa
+        </h2>
+
+        <p class="preview-description">
+          Revisa el orden de los postulantes y los avisos antes de generar
+          el archivo definitivo.
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- Resumen -->
+    <div id="summary"></div>
+
+
+    <!-- Hojas del Excel -->
+    <div id="sheet-tabs"></div>
+
+    <div id="sheet-info"></div>
+
+
+    <!-- Tabla -->
+    <div id="table-container">
+      <div class="empty-preview">
+        No hay datos para mostrar.
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+  </main>  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->  <script>
+    /*
+     * EterIA — Selección de ayudantes
+     * Vista previa + generación del Excel final.
+     */
+
+    const AYUDANTES_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
+
+    const ARCHIVO_EVALUACION = "Evaluación ayudante";
+    const COLUMNA_NOMBRE = "Postulante";
+    const COLUMNA_RUT = "Unnamed: 6";
+    const COLUMNA_NOTA = "Nota Curso (mínimo 5,0)";
+    const COLUMNA_CREDITOS = "Créditos aprobados";
+
+    const archivoInput = document.getElementById("archivo");
+    const botonGenerar = document.getElementById("generar");
+    const nombreArchivo = document.getElementById("nombre-archivo");
+    const estado = document.getElementById("estado");
+    const preview = document.getElementById("preview");
+    const summary = document.getElementById("summary");
+    const sheetTabs = document.getElementById("sheet-tabs");
+    const tableContainer = document.getElementById("table-container");
+    const sheetInfo = document.getElementById("sheet-info");
+
+    let archivoSeleccionado = null;
+    let registroAyudantes = null;
+    let workbookProcesado = null;
+    let resultadosHojas = [];
+    let hojaActiva = 0;
+
+
+    function textoSeguro(valor) {
+      return valor == null ? "" : String(valor).trim();
+    }
+
+
+    function normalizarTexto(valor = "") {
+      return textoSeguro(valor)
+        .replace(/"/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+
+    function normalizarNombre(valor = "") {
+      const limpio = textoSeguro(valor)
+        .replace(/"/g, "")
+        .trim();
+
+      if (limpio.includes(",")) {
+        const partes = limpio.split(",");
+        const apellidos = partes.shift().trim();
+        const nombres = partes.join(",").trim();
+
+        return normalizarTexto(`${nombres} ${apellidos}`);
+      }
+
+      return normalizarTexto(limpio);
+    }
+
+
+    function normalizarRut(valor = "") {
+      return textoSeguro(valor)
+        .toUpperCase()
+        .replace(/[\s.\-]/g, "");
+    }
+
+
+    function parseNumero(valor) {
+      if (typeof valor === "number") {
+        return Number.isFinite(valor) ? valor : null;
+      }
+
+      const texto = textoSeguro(valor);
+
+      if (!texto) return null;
+
+      const numero = Number(
+        texto.replace(/\s/g, "").replace(",", ".")
+      );
+
+      return Number.isFinite(numero) ? numero : null;
+    }
+
+
+    function evaluacionNumero(valor) {
+      const n = parseInt(textoSeguro(valor), 10);
+
+      return Number.isInteger(n) && n >= 1 && n <= 4
+        ? n
+        : null;
+    }
+
+
+    function mostrarEstado(mensaje, tipo = "") {
+      estado.textContent = mensaje;
+      estado.className = `status ${tipo}`.trim();
+    }
+
+
+    /* =========================================================
+       CSV
+       ========================================================= */
+
+    function parseCSVCompleto(texto) {
+      const filas = [];
+
+      let fila = [];
+      let campo = "";
+      let dentroComillas = false;
+
+      for (let i = 0; i < texto.length; i++) {
+
+        const char = texto[i];
+        const sig = texto[i + 1];
+
+        if (dentroComillas) {
+
+          if (char === '"' && sig === '"') {
+            campo += '"';
+            i++;
+          }
+
+          else if (char === '"') {
+            dentroComillas = false;
+          }
+
+          else {
+            campo += char;
+          }
+
+        }
+
+        else if (char === '"') {
+          dentroComillas = true;
+        }
+
+        else if (char === ",") {
+          fila.push(campo);
+          campo = "";
+        }
+
+        else if (char === "\r") {
+          // Ignorar.
+        }
+
+        else if (char === "\n") {
+
+          fila.push(campo);
+          filas.push(fila);
+
+          fila = [];
+          campo = "";
+
+        }
+
+        else {
+          campo += char;
+        }
+      }
+
+      if (campo.length || fila.length) {
+        fila.push(campo);
+        filas.push(fila);
+      }
+
+      return filas;
+    }
+
+
+    /* =========================================================
+       REGISTRO DE AYUDANTES
+       ========================================================= */
+
+    async function cargarRegistroAyudantes() {
+
+      if (registroAyudantes) {
+        return registroAyudantes;
+      }
+
+      const respuesta = await fetch(
+        AYUDANTES_URL,
+        { cache: "no-store" }
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          "No se pudo acceder al registro de ayudantes."
+        );
+      }
+
+      const filas = parseCSVCompleto(
+        await respuesta.text()
+      );
+
+      if (!filas.length) {
+        throw new Error(
+          "El registro de ayudantes está vacío."
+        );
+      }
+
+      registroAyudantes = filas
+        .slice(1)
+        .filter(fila => textoSeguro(fila[0]))
+        .map(fila => ({
+          nombre: textoSeguro(fila[0]),
+          rut: textoSeguro(fila[1]),
+          evaluacion: evaluacionNumero(fila[2])
+        }));
+
+      return registroAyudantes;
+    }
+
+
+    function construirIndices(registro) {
+
+      const porRut = new Map();
+      const porNombre = new Map();
+
+      for (const persona of registro) {
+
+        const rut = normalizarRut(persona.rut);
+        const nombre = normalizarNombre(persona.nombre);
+
+        if (rut && !porRut.has(rut)) {
+          porRut.set(rut, persona);
+        }
+
+        if (nombre && !porNombre.has(nombre)) {
+          porNombre.set(nombre, persona);
+        }
+      }
+
+      return {
+        porRut,
+        porNombre
       };
     }
 
-    aplicarEstiloEvaluacion(hoja, destino, columnaEvaluacion, item.evaluacion);
-    if (idxCreditos >= 0) aplicarEstiloCreditos(hoja, destino, idxCreditos, item.creditos);
-  });
 
-  rango.e.c = columnaEvaluacion;
-  hoja["!ref"] = XLSX.utils.encode_range(rango);
-  hoja["!cols"] = hoja["!cols"] || [];
-  hoja["!cols"][columnaEvaluacion] = { wch: 21 };
-}
+    /* =========================================================
+       EXCEL
+       ========================================================= */
 
-function procesarWorkbook(workbook, registro) {
-  const indices = construirIndices(registro);
-  const resultados = [];
+    function encontrarFilaCabecera(hoja) {
 
-  for (const nombre of workbook.SheetNames) {
-    const resultado = procesarHoja(workbook.Sheets[nombre], nombre, indices);
-    if (resultado) resultados.push(resultado);
-  }
+      const rango = XLSX.utils.decode_range(
+        hoja["!ref"] || "A1:A1"
+      );
 
-  if (!resultados.length) throw new Error('No encontré hojas con una columna "Postulante".');
+      for (
+        let r = rango.s.r;
+        r <= rango.e.r;
+        r++
+      ) {
 
-  return resultados;
-}
+        for (
+          let c = rango.s.c;
+          c <= rango.e.c;
+          c++
+        ) {
 
-function renderResumen(resultados) {
-  const todas = resultados.flatMap(r => r.filas);
-  const evaluados = todas.filter(x => x.evaluacion != null).length;
-  const buenos = todas.filter(x => x.evaluacion === 3 || x.evaluacion === 4).length;
-  const malos = todas.filter(x => x.evaluacion === 1 || x.evaluacion === 2).length;
-  const sinEval = todas.length - evaluados;
-  const pocosCreditos = todas.filter(x => x.creditos != null && x.creditos < 120).length;
+          const celda =
+            hoja[
+              XLSX.utils.encode_cell({ r, c })
+            ];
 
-  summary.innerHTML = `
-    <div class="summary-card"><span class="summary-number">${todas.length}</span><span class="summary-label">postulaciones</span></div>
-    <div class="summary-card"><span class="summary-number">${buenos}</span><span class="summary-label">evaluación 3–4</span></div>
-    <div class="summary-card"><span class="summary-number">${malos}</span><span class="summary-label">evaluación 1–2</span></div>
-    <div class="summary-card"><span class="summary-number">${sinEval}</span><span class="summary-label">sin evaluación</span></div>
-  `;
+          if (
+            normalizarTexto(celda?.v) ===
+            normalizarTexto(COLUMNA_NOMBRE)
+          ) {
+            return r;
+          }
+        }
+      }
 
-  if (pocosCreditos > 0) {
-    summary.insertAdjacentHTML("beforeend",
-      `<div class="summary-card"><span class="summary-number">${pocosCreditos}</span><span class="summary-label">con menos de 120 créditos</span></div>`
+      return -1;
+    }
+
+
+    function obtenerCabeceras(hoja, filaCabecera) {
+
+      const rango = XLSX.utils.decode_range(
+        hoja["!ref"]
+      );
+
+      const cabeceras = [];
+
+      for (
+        let c = rango.s.c;
+        c <= rango.e.c;
+        c++
+      ) {
+
+        cabeceras.push(
+          textoSeguro(
+            hoja[
+              XLSX.utils.encode_cell({
+                r: filaCabecera,
+                c
+              })
+            ]?.v
+          )
+        );
+      }
+
+      return cabeceras;
+    }
+
+
+    function encontrarIndiceCabecera(
+      cabeceras,
+      nombre
+    ) {
+
+      return cabeceras.findIndex(
+        c =>
+          normalizarTexto(c) ===
+          normalizarTexto(nombre)
+      );
+    }
+
+
+    function buscarEvaluacion(
+      indices,
+      rut,
+      nombre
+    ) {
+
+      /*
+       * Primero intentamos por RUT.
+       * Si no hay RUT o no encontramos a la persona,
+       * usamos el nombre.
+       */
+
+      if (rut) {
+
+        const persona =
+          indices.porRut.get(rut);
+
+        if (
+          persona &&
+          persona.evaluacion != null
+        ) {
+          return persona.evaluacion;
+        }
+      }
+
+      if (nombre) {
+
+        const persona =
+          indices.porNombre.get(nombre);
+
+        if (
+          persona &&
+          persona.evaluacion != null
+        ) {
+          return persona.evaluacion;
+        }
+      }
+
+      return null;
+    }
+
+
+    function procesarHoja(
+      hoja,
+      nombreHoja,
+      indicesRegistro
+    ) {
+
+      const filaCabecera =
+        encontrarFilaCabecera(hoja);
+
+      if (filaCabecera < 0) {
+        return null;
+      }
+
+      const cabeceras =
+        obtenerCabeceras(
+          hoja,
+          filaCabecera
+        );
+
+      const idxNombre =
+        encontrarIndiceCabecera(
+          cabeceras,
+          COLUMNA_NOMBRE
+        );
+
+      const idxNota =
+        encontrarIndiceCabecera(
+          cabeceras,
+          COLUMNA_NOTA
+        );
+
+      const idxCreditos =
+        encontrarIndiceCabecera(
+          cabeceras,
+          COLUMNA_CREDITOS
+        );
+
+      if (idxNombre < 0) {
+        return null;
+      }
+
+
+      let idxRut =
+        cabeceras.findIndex(c => {
+
+          const n =
+            normalizarTexto(c);
+
+          return (
+            n === "rut" ||
+            n === "r.u.t." ||
+            n === "rut postulante"
+          );
+        });
+
+
+      if (idxRut < 0) {
+        idxRut =
+          cabeceras.indexOf(
+            COLUMNA_RUT
+          );
+      }
+
+
+      /*
+       * Compatibilidad con archivos donde
+       * el RUT está en la columna G.
+       */
+      if (idxRut < 0) {
+        idxRut = 6;
+      }
+
+
+      const rango =
+        XLSX.utils.decode_range(
+          hoja["!ref"]
+        );
+
+      const filas = [];
+
+
+      for (
+        let r = filaCabecera + 1;
+        r <= rango.e.r;
+        r++
+      ) {
+
+        const nombreOriginal =
+          textoSeguro(
+            hoja[
+              XLSX.utils.encode_cell({
+                r,
+                c: idxNombre
+              })
+            ]?.v
+          );
+
+        if (!nombreOriginal) {
+          continue;
+        }
+
+
+        const rut =
+          normalizarRut(
+            hoja[
+              XLSX.utils.encode_cell({
+                r,
+                c: idxRut
+              })
+            ]?.v
+          );
+
+
+        const nombre =
+          normalizarNombre(
+            nombreOriginal
+          );
+
+
+        const evaluacion =
+          buscarEvaluacion(
+            indicesRegistro,
+            rut,
+            nombre
+          );
+
+
+        const nota =
+          idxNota >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r,
+                    c: idxNota
+                  })
+                ]?.v
+              )
+            : null;
+
+
+        const creditos =
+          idxCreditos >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r,
+                    c: idxCreditos
+                  })
+                ]?.v
+              )
+            : null;
+
+
+        filas.push({
+          filaOriginal: r,
+          nombre: nombreOriginal,
+          rut:
+            textoSeguro(
+              hoja[
+                XLSX.utils.encode_cell({
+                  r,
+                  c: idxRut
+                })
+              ]?.v
+            ),
+          evaluacion,
+          nota,
+          creditos
+        });
+      }
+
+
+      /*
+       * Orden:
+       * 1. Evaluación 4 → 3 → 2 → 1 → sin evaluación
+       * 2. Nota del curso, de mayor a menor
+       * 3. Orden original del Excel
+       */
+
+      filas.sort((a, b) => {
+
+        const ea =
+          a.evaluacion == null
+            ? -1
+            : a.evaluacion;
+
+        const eb =
+          b.evaluacion == null
+            ? -1
+            : b.evaluacion;
+
+        if (ea !== eb) {
+          return eb - ea;
+        }
+
+
+        const na =
+          a.nota == null
+            ? -Infinity
+            : a.nota;
+
+        const nb =
+          b.nota == null
+            ? -Infinity
+            : b.nota;
+
+        if (na !== nb) {
+          return nb - na;
+        }
+
+
+        return (
+          a.filaOriginal -
+          b.filaOriginal
+        );
+      });
+
+
+      return {
+        nombre: nombreHoja,
+        hoja,
+        filaCabecera,
+        cabeceras,
+        idxNombre,
+        idxNota,
+        idxCreditos,
+        filas,
+        rango
+      };
+    }
+
+
+    /* =========================================================
+       ESTILOS PARA EXCEL
+       ========================================================= */
+
+    function estiloBase(celda) {
+
+      return {
+        ...(celda?.s || {}),
+        alignment: {
+          ...(celda?.s?.alignment || {}),
+          vertical: "top"
+        }
+      };
+    }
+
+
+    function aplicarEstiloEvaluacion(
+      hoja,
+      fila,
+      columna,
+      evaluacion
+    ) {
+
+      const direccion =
+        XLSX.utils.encode_cell({
+          r: fila,
+          c: columna
+        });
+
+      const celda =
+        hoja[direccion] || {
+          t: "s",
+          v: ""
+        };
+
+      const estilo =
+        estiloBase(celda);
+
+
+      if (
+        evaluacion === 3 ||
+        evaluacion === 4
+      ) {
+
+        estilo.fill = {
+          patternType: "solid",
+          fgColor: {
+            rgb: "C6EFCE"
+          }
+        };
+
+        estilo.font = {
+          ...(estilo.font || {}),
+          color: {
+            rgb: "006100"
+          },
+          bold: true
+        };
+
+      }
+
+      else if (
+        evaluacion === 1 ||
+        evaluacion === 2
+      ) {
+
+        estilo.fill = {
+          patternType: "solid",
+          fgColor: {
+            rgb: "FFC7CE"
+          }
+        };
+
+        estilo.font = {
+          ...(estilo.font || {}),
+          color: {
+            rgb: "9C0006"
+          },
+          bold: true
+        };
+      }
+
+
+      celda.s = estilo;
+
+      celda.t =
+        evaluacion == null
+          ? "s"
+          : "n";
+
+      celda.v =
+        evaluacion ?? "";
+
+      hoja[direccion] = celda;
+    }
+
+
+    function aplicarEstiloCreditos(
+      hoja,
+      fila,
+      columna,
+      creditos
+    ) {
+
+      if (
+        creditos == null ||
+        creditos >= 120
+      ) {
+        return;
+      }
+
+
+      const direccion =
+        XLSX.utils.encode_cell({
+          r: fila,
+          c: columna
+        });
+
+
+      const celda =
+        hoja[direccion] || {
+          t: "n",
+          v: creditos
+        };
+
+
+      const estilo =
+        estiloBase(celda);
+
+
+      estilo.fill = {
+        patternType: "solid",
+        fgColor: {
+          rgb: "FFC7CE"
+        }
+      };
+
+
+      estilo.font = {
+        ...(estilo.font || {}),
+        color: {
+          rgb: "9C0006"
+        },
+        bold: true
+      };
+
+
+      celda.s = estilo;
+
+      hoja[direccion] = celda;
+    }
+
+
+    function escribirValor(
+      hoja,
+      fila,
+      columna,
+      valor
+    ) {
+
+      const direccion =
+        XLSX.utils.encode_cell({
+          r: fila,
+          c: columna
+        });
+
+      const celda =
+        hoja[direccion] || {};
+
+      celda.v =
+        valor == null
+          ? ""
+          : valor;
+
+      celda.t =
+        typeof celda.v === "number"
+          ? "n"
+          : "s";
+
+      hoja[direccion] = celda;
+    }
+
+
+    function aplicarProcesamientoExcel(
+      resultado
+    ) {
+
+      const {
+        hoja,
+        filaCabecera,
+        filas,
+        idxCreditos,
+        rango
+      } = resultado;
+
+
+      const columnaEvaluacion =
+        rango.e.c + 1;
+
+
+      escribirValor(
+        hoja,
+        filaCabecera,
+        columnaEvaluacion,
+        ARCHIVO_EVALUACION
+      );
+
+
+      /*
+       * Guardamos los valores originales
+       * antes de reordenar las filas.
+       */
+
+      const filasOriginales =
+        new Map();
+
+
+      for (const item of filas) {
+
+        const valores = [];
+
+        for (
+          let c = rango.s.c;
+          c <= rango.e.c;
+          c++
+        ) {
+
+          const celda =
+            hoja[
+              XLSX.utils.encode_cell({
+                r: item.filaOriginal,
+                c
+              })
+            ];
+
+          valores.push(
+            celda
+              ? celda.v
+              : ""
+          );
+        }
+
+        filasOriginales.set(
+          item.filaOriginal,
+          valores
+        );
+      }
+
+
+      filas.forEach(
+        (item, i) => {
+
+          const destino =
+            filaCabecera +
+            1 +
+            i;
+
+          const valores =
+            filasOriginales.get(
+              item.filaOriginal
+            );
+
+
+          for (
+            let c = rango.s.c;
+            c <= rango.e.c;
+            c++
+          ) {
+
+            const valor =
+              valores[
+                c - rango.s.c
+              ];
+
+            const origen =
+              hoja[
+                XLSX.utils.encode_cell({
+                  r: item.filaOriginal,
+                  c
+                })
+              ];
+
+            const destinoCell =
+              XLSX.utils.encode_cell({
+                r: destino,
+                c
+              });
+
+
+            hoja[destinoCell] = {
+              ...(origen || {}),
+              v: valor,
+              t:
+                origen?.t ||
+                (
+                  typeof valor === "number"
+                    ? "n"
+                    : "s"
+                )
+            };
+          }
+
+
+          aplicarEstiloEvaluacion(
+            hoja,
+            destino,
+            columnaEvaluacion,
+            item.evaluacion
+          );
+
+
+          if (idxCreditos >= 0) {
+
+            aplicarEstiloCreditos(
+              hoja,
+              destino,
+              idxCreditos,
+              item.creditos
+            );
+          }
+        }
+      );
+
+
+      rango.e.c =
+        columnaEvaluacion;
+
+      hoja["!ref"] =
+        XLSX.utils.encode_range(
+          rango
+        );
+
+
+      hoja["!cols"] =
+        hoja["!cols"] || [];
+
+
+      hoja["!cols"][
+        columnaEvaluacion
+      ] = {
+        wch: 21
+      };
+    }
+
+
+    /* =========================================================
+       PROCESAR WORKBOOK
+       ========================================================= */
+
+    function procesarWorkbook(
+      workbook,
+      registro
+    ) {
+
+      const indices =
+        construirIndices(
+          registro
+        );
+
+      const resultados = [];
+
+
+      for (
+        const nombre
+        of workbook.SheetNames
+      ) {
+
+        const resultado =
+          procesarHoja(
+            workbook.Sheets[nombre],
+            nombre,
+            indices
+          );
+
+        if (resultado) {
+          resultados.push(
+            resultado
+          );
+        }
+      }
+
+
+      if (!resultados.length) {
+
+        throw new Error(
+          'No encontré hojas con una columna "Postulante".'
+        );
+      }
+
+
+      return resultados;
+    }
+
+
+    /* =========================================================
+       RESUMEN
+       ========================================================= */
+
+    function renderResumen(
+      resultados
+    ) {
+
+      const todas =
+        resultados.flatMap(
+          r => r.filas
+        );
+
+
+      const evaluados =
+        todas.filter(
+          x => x.evaluacion != null
+        ).length;
+
+
+      const buenos =
+        todas.filter(
+          x =>
+            x.evaluacion === 3 ||
+            x.evaluacion === 4
+        ).length;
+
+
+      const malos =
+        todas.filter(
+          x =>
+            x.evaluacion === 1 ||
+            x.evaluacion === 2
+        ).length;
+
+
+      const sinEval =
+        todas.length -
+        evaluados;
+
+
+      const pocosCreditos =
+        todas.filter(
+          x =>
+            x.creditos != null &&
+            x.creditos < 120
+        ).length;
+
+
+      summary.innerHTML = `
+
+        <div class="summary-card">
+          <span class="summary-number">
+            ${todas.length}
+          </span>
+          <span class="summary-label">
+            postulaciones
+          </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-number">
+            ${buenos}
+          </span>
+          <span class="summary-label">
+            evaluación 3–4
+          </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-number">
+            ${malos}
+          </span>
+          <span class="summary-label">
+            evaluación 1–2
+          </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-number">
+            ${sinEval}
+          </span>
+          <span class="summary-label">
+            sin evaluación
+          </span>
+        </div>
+
+      `;
+
+
+      if (pocosCreditos > 0) {
+
+        summary.insertAdjacentHTML(
+          "beforeend",
+
+          `
+          <div class="summary-card">
+
+            <span class="summary-number">
+              ${pocosCreditos}
+            </span>
+
+            <span class="summary-label">
+              con menos de 120 créditos
+            </span>
+
+          </div>
+          `
+        );
+      }
+    }
+
+
+    /* =========================================================
+       TABS
+       ========================================================= */
+
+    function renderTabs() {
+
+      sheetTabs.innerHTML = "";
+
+      resultadosHojas.forEach(
+        (resultado, i) => {
+
+          const button =
+            document.createElement(
+              "button"
+            );
+
+          button.type = "button";
+
+          button.className =
+            `sheet-tab ${
+              i === hojaActiva
+                ? "active"
+                : ""
+            }`;
+
+          button.textContent =
+            `${resultado.nombre} (${resultado.filas.length})`;
+
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              hojaActiva = i;
+
+              renderTabs();
+              renderTabla();
+            }
+          );
+
+
+          sheetTabs.appendChild(
+            button
+          );
+        }
+      );
+    }
+
+
+    /* =========================================================
+       TABLA
+       ========================================================= */
+
+    function escaparHTML(valor) {
+
+      return textoSeguro(valor)
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        );
+    }
+
+
+    function renderTabla() {
+
+      const resultado =
+        resultadosHojas[
+          hojaActiva
+        ];
+
+
+      if (!resultado) {
+
+        tableContainer.innerHTML =
+          `
+          <div class="empty-preview">
+            No hay datos para mostrar.
+          </div>
+          `;
+
+        return;
+      }
+
+
+      const filas =
+        resultado.filas;
+
+
+      let html = `
+
+        <table class="preview-table">
+
+          <thead>
+
+            <tr>
+
+              <th class="rank">
+                #
+              </th>
+
+              <th>
+                Postulante
+              </th>
+
+              <th>
+                RUT
+              </th>
+
+              <th>
+                Nota curso
+              </th>
+
+              <th>
+                Evaluación
+              </th>
+
+              <th>
+                Créditos aprobados
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+      `;
+
+
+      filas.forEach(
+        (item, i) => {
+
+          const evalClass =
+            item.evaluacion == null
+              ? "evaluation-none"
+              : (
+                item.evaluacion >= 3
+                  ? "evaluation-good"
+                  : "evaluation-bad"
+              );
+
+
+          const evalTexto =
+            item.evaluacion == null
+              ? "—"
+              : item.evaluacion;
+
+
+          const creditosWarning =
+            item.creditos != null &&
+            item.creditos < 120;
+
+
+          const creditosClass =
+            creditosWarning
+              ? "credits-warning"
+              : "";
+
+
+          html += `
+
+            <tr>
+
+              <td class="rank">
+                ${i + 1}
+              </td>
+
+              <td>
+                ${escaparHTML(
+                  item.nombre
+                )}
+              </td>
+
+              <td>
+                ${escaparHTML(
+                  item.rut || "—"
+                )}
+              </td>
+
+              <td>
+                ${
+                  item.nota == null
+                    ? "—"
+                    : String(item.nota)
+                        .replace(".", ",")
+                }
+              </td>
+
+              <td>
+
+                <span
+                  class="evaluation-cell ${evalClass}"
+                >
+                  ${evalTexto}
+                </span>
+
+              </td>
+
+              <td class="${creditosClass}">
+
+                ${
+                  item.creditos == null
+                    ? "—"
+                    : item.creditos
+                }
+
+                ${
+                  creditosWarning
+                    ? `
+                      <span class="credit-badge">
+                        menos de 120
+                      </span>
+                    `
+                    : ""
+                }
+
+              </td>
+
+            </tr>
+
+          `;
+        }
+      );
+
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+
+      tableContainer.innerHTML =
+        html;
+
+
+      const buenos =
+        filas.filter(
+          x => x.evaluacion >= 3
+        ).length;
+
+
+      const malos =
+        filas.filter(
+          x =>
+            x.evaluacion != null &&
+            x.evaluacion <= 2
+        ).length;
+
+
+      const sinEval =
+        filas.filter(
+          x =>
+            x.evaluacion == null
+        ).length;
+
+
+      const pocos =
+        filas.filter(
+          x =>
+            x.creditos != null &&
+            x.creditos < 120
+        ).length;
+
+
+      sheetInfo.textContent =
+        `${filas.length} postulantes · ` +
+        `${buenos} con evaluación 3–4 · ` +
+        `${malos} con evaluación 1–2 · ` +
+        `${sinEval} sin evaluación · ` +
+        `${pocos} con menos de 120 créditos.`;
+    }
+
+
+    /* =========================================================
+       PREPARAR VISTA PREVIA
+       ========================================================= */
+
+    async function prepararVistaPrevia() {
+
+      if (!archivoSeleccionado) {
+        return;
+      }
+
+
+      botonGenerar.disabled = true;
+
+      preview.classList.add(
+        "hidden"
+      );
+
+
+      mostrarEstado(
+        "Leyendo el registro de ayudantes…",
+        "loading"
+      );
+
+
+      try {
+
+        const registro =
+          await cargarRegistroAyudantes();
+
+
+        mostrarEstado(
+          "Procesando postulaciones…",
+          "loading"
+        );
+
+
+        const datos =
+          await archivoSeleccionado
+            .arrayBuffer();
+
+
+        const workbook =
+          XLSX.read(
+            datos,
+            {
+              type: "array",
+              cellStyles: true,
+              cellNF: true,
+              cellDates: true
+            }
+          );
+
+
+        resultadosHojas =
+          procesarWorkbook(
+            workbook,
+            registro
+          );
+
+
+        workbookProcesado =
+          workbook;
+
+
+        resultadosHojas.forEach(
+          aplicarProcesamientoExcel
+        );
+
+
+        hojaActiva = 0;
+
+
+        renderResumen(
+          resultadosHojas
+        );
+
+        renderTabs();
+        renderTabla();
+
+
+        preview.classList.remove(
+          "hidden"
+        );
+
+
+        botonGenerar.disabled =
+          false;
+
+
+        const total =
+          resultadosHojas.reduce(
+            (s, r) =>
+              s + r.filas.length,
+            0
+          );
+
+
+        mostrarEstado(
+          `Vista previa lista: ${total} postulaciones procesadas. Revisa el orden antes de generar el archivo.`,
+          "success"
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        workbookProcesado = null;
+        resultadosHojas = [];
+
+        preview.classList.add(
+          "hidden"
+        );
+
+        mostrarEstado(
+          error.message ||
+          "Ocurrió un error al procesar el archivo.",
+          "error"
+        );
+      }
+    }
+
+
+    /* =========================================================
+       GENERAR ARCHIVO
+       ========================================================= */
+
+    function generarArchivo() {
+
+      if (!workbookProcesado) {
+        return;
+      }
+
+
+      botonGenerar.disabled = true;
+
+
+      mostrarEstado(
+        "Generando Excel…",
+        "loading"
+      );
+
+
+      try {
+
+        const salida =
+          XLSX.write(
+            workbookProcesado,
+            {
+              bookType: "xlsx",
+              type: "array",
+              cellStyles: true
+            }
+          );
+
+
+        const blob =
+          new Blob(
+            [salida],
+            {
+              type:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+          );
+
+
+        const url =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        const enlace =
+          document.createElement(
+            "a"
+          );
+
+
+        const nombreBase =
+          archivoSeleccionado.name
+            .replace(
+              /\.(xlsx|xls)$/i,
+              ""
+            );
+
+
+        enlace.href = url;
+
+        enlace.download =
+          `${nombreBase} - Seleccionados.xlsx`;
+
+
+        document.body.appendChild(
+          enlace
+        );
+
+
+        enlace.click();
+
+        enlace.remove();
+
+
+        URL.revokeObjectURL(
+          url
+        );
+
+
+        mostrarEstado(
+          "Listo. El archivo de selección fue descargado.",
+          "success"
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        mostrarEstado(
+          error.message ||
+          "No se pudo generar el archivo.",
+          "error"
+        );
+
+      }
+
+      finally {
+
+        botonGenerar.disabled =
+          false;
+      }
+    }
+
+
+    /* =========================================================
+       EVENTOS
+       ========================================================= */
+
+    archivoInput.addEventListener(
+      "change",
+      () => {
+
+        archivoSeleccionado =
+          archivoInput.files?.[0] ||
+          null;
+
+
+        workbookProcesado = null;
+        resultadosHojas = [];
+
+
+        preview.classList.add(
+          "hidden"
+        );
+
+
+        botonGenerar.disabled =
+          true;
+
+
+        if (!archivoSeleccionado) {
+
+          nombreArchivo.textContent =
+            "";
+
+          mostrarEstado(
+            "Selecciona un archivo Excel para comenzar."
+          );
+
+          return;
+        }
+
+
+        nombreArchivo.textContent =
+          archivoSeleccionado.name;
+
+
+        prepararVistaPrevia();
+      }
     );
-  }
-}
 
-function renderTabs() {
-  sheetTabs.innerHTML = "";
-  resultadosHojas.forEach((resultado, i) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `sheet-tab ${i === hojaActiva ? "active" : ""}`;
-    button.textContent = `${resultado.nombre} (${resultado.filas.length})`;
-    button.addEventListener("click", () => {
-      hojaActiva = i;
-      renderTabs();
-      renderTabla();
-    });
-    sheetTabs.appendChild(button);
-  });
-}
 
-function escaparHTML(valor) {
-  return textoSeguro(valor)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function renderTabla() {
-  const resultado = resultadosHojas[hojaActiva];
-  if (!resultado) {
-    tableContainer.innerHTML = `<div class="empty-preview">No hay datos para mostrar.</div>`;
-    return;
-  }
-
-  const filas = resultado.filas;
-  let html = `
-    <table class="preview-table">
-      <thead>
-        <tr>
-          <th class="rank">#</th>
-          <th>Postulante</th>
-          <th>RUT</th>
-          <th>Nota curso</th>
-          <th>Evaluación</th>
-          <th>Créditos aprobados</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  filas.forEach((item, i) => {
-    const evalClass = item.evaluacion == null
-      ? "evaluation-none"
-      : (item.evaluacion >= 3 ? "evaluation-good" : "evaluation-bad");
-
-    const evalTexto = item.evaluacion == null ? "—" : item.evaluacion;
-    const creditosWarning = item.creditos != null && item.creditos < 120;
-    const creditosClass = creditosWarning ? "credits-warning" : "";
-
-    html += `
-      <tr>
-        <td class="rank">${i + 1}</td>
-        <td>${escaparHTML(item.nombre)}</td>
-        <td>${escaparHTML(item.rut || "—")}</td>
-        <td>${item.nota == null ? "—" : String(item.nota).replace(".", ",")}</td>
-        <td><span class="evaluation-cell ${evalClass}">${evalTexto}</span></td>
-        <td class="${creditosClass}">
-          ${item.creditos == null ? "—" : item.creditos}
-          ${creditosWarning ? '<span class="credit-badge">menos de 120</span>' : ""}
-        </td>
-      </tr>
-    `;
-  });
-
-  html += `</tbody></table>`;
-  tableContainer.innerHTML = html;
-
-  const buenos = filas.filter(x => x.evaluacion >= 3).length;
-  const malos = filas.filter(x => x.evaluacion != null && x.evaluacion <= 2).length;
-  const sinEval = filas.filter(x => x.evaluacion == null).length;
-  const pocos = filas.filter(x => x.creditos != null && x.creditos < 120).length;
-
-  sheetInfo.textContent =
-    `${filas.length} postulantes · ${buenos} con evaluación 3–4 · ` +
-    `${malos} con evaluación 1–2 · ${sinEval} sin evaluación · ` +
-    `${pocos} con menos de 120 créditos.`;
-}
-
-async function prepararVistaPrevia() {
-  if (!archivoSeleccionado) return;
-
-  botonGenerar.disabled = true;
-  preview.classList.add("hidden");
-  mostrarEstado("Leyendo el registro de ayudantes…", "loading");
-
-  try {
-    const registro = await cargarRegistroAyudantes();
-    mostrarEstado("Procesando postulaciones…", "loading");
-
-    const datos = await archivoSeleccionado.arrayBuffer();
-    const workbook = XLSX.read(datos, {
-      type: "array",
-      cellStyles: true,
-      cellNF: true,
-      cellDates: true
-    });
-
-    resultadosHojas = procesarWorkbook(workbook, registro);
-    workbookProcesado = workbook;
-    resultadosHojas.forEach(aplicarProcesamientoExcel);
-
-    hojaActiva = 0;
-    renderResumen(resultadosHojas);
-    renderTabs();
-    renderTabla();
-
-    preview.classList.remove("hidden");
-    botonGenerar.disabled = false;
-
-    const total = resultadosHojas.reduce((s, r) => s + r.filas.length, 0);
-    mostrarEstado(
-      `Vista previa lista: ${total} postulaciones procesadas. Revisa el orden antes de generar el archivo.`,
-      "success"
+    botonGenerar.addEventListener(
+      "click",
+      generarArchivo
     );
-  } catch (error) {
-    console.error(error);
-    workbookProcesado = null;
-    resultadosHojas = [];
-    preview.classList.add("hidden");
-    mostrarEstado(error.message || "Ocurrió un error al procesar el archivo.", "error");
-  }
-}
 
-function generarArchivo() {
-  if (!workbookProcesado) return;
-
-  botonGenerar.disabled = true;
-  mostrarEstado("Generando Excel…", "loading");
-
-  try {
-    const salida = XLSX.write(workbookProcesado, {
-      bookType: "xlsx",
-      type: "array",
-      cellStyles: true
-    });
-
-    const blob = new Blob([salida], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    });
-
-    const url = URL.createObjectURL(blob);
-    const enlace = document.createElement("a");
-    const nombreBase = archivoSeleccionado.name.replace(/\.(xlsx|xls)$/i, "");
-
-    enlace.href = url;
-    enlace.download = `${nombreBase} - Seleccionados.xlsx`;
-    document.body.appendChild(enlace);
-    enlace.click();
-    enlace.remove();
-    URL.revokeObjectURL(url);
-
-    mostrarEstado("Listo. El archivo de selección fue descargado.", "success");
-  } catch (error) {
-    console.error(error);
-    mostrarEstado(error.message || "No se pudo generar el archivo.", "error");
-  } finally {
-    botonGenerar.disabled = false;
-  }
-}
-
-// El <label for="archivo"> abre el selector de archivos de forma nativa.
-archivoInput.addEventListener("change", () => {
-  archivoSeleccionado = archivoInput.files?.[0] || null;
-  workbookProcesado = null;
-  resultadosHojas = [];
-  preview.classList.add("hidden");
-  botonGenerar.disabled = true;
-
-  if (!archivoSeleccionado) {
-    nombreArchivo.textContent = "";
-    return;
-  }
-
-  nombreArchivo.textContent = archivoSeleccionado.name;
-  prepararVistaPrevia();
-});
-
-botonGenerar.addEventListener("click", generarArchivo);
+  </script></body>
+</html>
