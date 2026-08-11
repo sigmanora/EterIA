@@ -21,6 +21,10 @@ function normalizar(t="") {
     .replace(/[\u0300-\u036f]/g,"");
 }
 
+function limpiarRut(t="") {
+  return t.replace(/[.\s]/g,"");
+}
+
 function formatearNombre(raw="") {
   raw = raw.replace(/"/g,"");
   if (!raw.includes(",")) return raw;
@@ -149,13 +153,14 @@ function mostrarPersona(persona) {
 /* Buscar */
 input.addEventListener("input",()=>{
   const q=normalizar(input.value);
+  const qRut=limpiarRut(q);
   lista.innerHTML="";
   if(q.length<2) return;
 
   personas
     .filter(p =>
       normalizar(p.nombre).includes(q) ||
-      normalizar(p.rut).includes(q)
+      limpiarRut(normalizar(p.rut)).includes(qRut)
     )
     .forEach(p=>{
       const d=document.createElement("div");
