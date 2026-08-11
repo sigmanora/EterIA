@@ -473,4 +473,5 @@ button.main-action:active { transform: translateY(1px); }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-}
+   }
+   
