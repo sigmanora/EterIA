@@ -33,20 +33,44 @@ function parseCSV(line) {
   return line?.match(r)?.map(v=>v.replace(/^"|"$/g,"")) || [];
 }
 
-/* Parsea la columna INFORMACIÓN: "SEMESTRE (CURSO): Comentario" */
+/* Parsea un bloque individual "SEMESTRE (CURSO): Comentario" */
+function parseBloque(bloque) {
+  let m = bloque.match(/^\s*(\d{4}-\d)\s*\(([^)]+)\)\s*:\s*([\s\S]*)$/);
+  if (m) {
+    return { semestre: m[1], curso: m[2].trim(), comentarios: m[3].trim() || "-" };
+  }
+  m = bloque.match(/^\s*(\d{4}-\d)\s*:\s*([\s\S]*)$/);
+  if (m) {
+    return { semestre: m[1], curso: "-", comentarios: m[2].trim() || "-" };
+  }
+  m = bloque.match(/^\s*(\d{4}-\d)\s*$/);
+  if (m) {
+    return { semestre: m[1], curso: "-", comentarios: "-" };
+  }
+  // Sin semestre identificable: puede venir como "MA1101 - comentario" o similar
+  m = bloque.match(/^:?\s*(MA\d{3,4})\s*[-:]\s*([\s\S]*)$/i);
+  if (m) {
+    return { semestre: "-", curso: m[1].toUpperCase(), comentarios: m[2].trim() || "-" };
+  }
+  return { semestre: "-", curso: "-", comentarios: bloque.trim() };
+}
+
+/* Parsea la columna INFORMACIÓN, que puede traer varios bloques semestre-curso-comentario
+   pegados en la misma celda (ej. un ayudante con evaluaciones en 2025-2 y en 2026-1) */
 function parseInformacion(info="") {
-  // Caso normal: "2026-1 (MA1101): Comentario..."
-  let m = info.match(/^\s*([^(:]+?)\s*\(([^)]+)\)\s*:\s*(.*)$/s);
-  if (m) {
-    return { semestre: m[1].trim(), curso: m[2].trim(), comentarios: m[3].trim() };
-  }
-  // Caso sin curso entre paréntesis: "2023-2 : Comentario..."
-  m = info.match(/^\s*([^:]+?)\s*:\s*(.*)$/s);
-  if (m) {
-    return { semestre: m[1].trim(), curso: "-", comentarios: m[2].trim() };
-  }
-  // Sin formato reconocible: se deja todo como comentario
-  return { semestre: "-", curso: "-", comentarios: info.trim() };
+  info = info.trim();
+  if (!info) return [];
+
+  const semestreRegex = /\d{4}-\d/g;
+  const inicios = [...info.matchAll(semestreRegex)].map(m => m.index);
+
+  // No se detectó ningún patrón de semestre: se trata como un solo bloque
+  if (inicios.length === 0) return [parseBloque(info)];
+
+  return inicios.map((inicio, i) => {
+    const fin = i + 1 < inicios.length ? inicios[i + 1] : info.length;
+    return parseBloque(info.slice(inicio, fin));
+  });
 }
 
 /* Cargar hojas */
@@ -54,14 +78,11 @@ function cargarHoja(url,tipo){
   return fetch(url).then(r=>r.text()).then(csv=>{
     return csv.split("\n").slice(1).map(f=>{
       const c = parseCSV(f);
-      const { semestre, curso, comentarios } = parseInformacion(c[3]);
       return {
         nombre:c[0],
         rut:c[1],
         evaluacion:c[2],
-        curso,
-        semestre,
-        comentarios,
+        evaluaciones: parseInformacion(c[3]),
         tipo
       };
     });
@@ -82,13 +103,21 @@ function renderEstrellas(valor) {
 
 /* Mostrar persona */
 function mostrarPersona(persona) {
+  const evaluaciones = persona.evaluaciones?.length
+    ? persona.evaluaciones.map(e => `
+        <div class="evaluacion-item">
+          <p><strong>Curso y semestre:</strong> ${e.curso} · ${e.semestre}</p>
+          <p><strong>Comentarios:</strong> ${e.comentarios}</p>
+        </div>
+      `).join("<hr>")
+    : `<p>Sin registros de evaluación.</p>`;
+
   resultado.innerHTML = `
     <h2>${formatearNombre(persona.nombre)}</h2>
 
     <p><strong>Evaluación:</strong> <span class="estrellas">${renderEstrellas(persona.evaluacion)}</span></p>
     <p><strong>Tipo:</strong> ${persona.tipo}</p>
-    <p><strong>Curso y semestre:</strong> ${persona.curso} · ${persona.semestre}</p>
-    <p><strong>Comentarios:</strong> ${persona.comentarios || "-"}</p>
+    ${evaluaciones}
   `;
 
   modal.classList.remove("hidden");
