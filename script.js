@@ -33,18 +33,35 @@ function parseCSV(line) {
   return line?.match(r)?.map(v=>v.replace(/^"|"$/g,"")) || [];
 }
 
+/* Parsea la columna INFORMACIÓN: "SEMESTRE (CURSO): Comentario" */
+function parseInformacion(info="") {
+  // Caso normal: "2026-1 (MA1101): Comentario..."
+  let m = info.match(/^\s*([^(:]+?)\s*\(([^)]+)\)\s*:\s*(.*)$/s);
+  if (m) {
+    return { semestre: m[1].trim(), curso: m[2].trim(), comentarios: m[3].trim() };
+  }
+  // Caso sin curso entre paréntesis: "2023-2 : Comentario..."
+  m = info.match(/^\s*([^:]+?)\s*:\s*(.*)$/s);
+  if (m) {
+    return { semestre: m[1].trim(), curso: "-", comentarios: m[2].trim() };
+  }
+  // Sin formato reconocible: se deja todo como comentario
+  return { semestre: "-", curso: "-", comentarios: info.trim() };
+}
+
 /* Cargar hojas */
 function cargarHoja(url,tipo){
   return fetch(url).then(r=>r.text()).then(csv=>{
     return csv.split("\n").slice(1).map(f=>{
       const c = parseCSV(f);
+      const { semestre, curso, comentarios } = parseInformacion(c[3]);
       return {
         nombre:c[0],
         rut:c[1],
-        curso:c[2],
-        semestre:c[3],
-        evaluacion:c[4],
-        comentarios:c[5],
+        evaluacion:c[2],
+        curso,
+        semestre,
+        comentarios,
         tipo
       };
     });
@@ -56,12 +73,19 @@ Promise.all([
   cargarHoja(AUXILIARES_URL,"Auxiliar de control")
 ]).then(r=>personas=r.flat());
 
+/* Convierte la nota 1-4 en estrellas */
+function renderEstrellas(valor) {
+  const n = parseInt(valor, 10);
+  if (!n || n < 1 || n > 4) return "Sin evaluar";
+  return "★".repeat(n) + "☆".repeat(4 - n);
+}
+
 /* Mostrar persona */
 function mostrarPersona(persona) {
   resultado.innerHTML = `
     <h2>${formatearNombre(persona.nombre)}</h2>
 
-    <p><strong>Evaluación:</strong> ${persona.evaluacion || "Sin evaluar"}</p>
+    <p><strong>Evaluación:</strong> <span class="estrellas">${renderEstrellas(persona.evaluacion)}</span></p>
     <p><strong>Tipo:</strong> ${persona.tipo}</p>
     <p><strong>Curso y semestre:</strong> ${persona.curso} · ${persona.semestre}</p>
     <p><strong>Comentarios:</strong> ${persona.comentarios || "-"}</p>
@@ -94,4 +118,3 @@ input.addEventListener("input",()=>{
       lista.appendChild(d);
     });
 });
-
