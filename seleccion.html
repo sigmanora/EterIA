@@ -192,7 +192,7 @@
 
     .selection-table {
       width: 100%;
-      min-width: 1050px;
+      min-width: 1180px;
       border-collapse: collapse;
       font-size: 12.5px;
     }
@@ -271,6 +271,42 @@
     }
 
     .evaluation-none {
+      color: var(--ink-faint);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+
+
+    /* =========================================================
+       ÍNDICE DE APROBACIÓN
+       ========================================================= */
+
+    .approval-index {
+      display: inline-flex;
+      min-width: 48px;
+      height: 28px;
+      padding: 0 8px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .approval-good {
+      color: #70b7ff;
+      background: rgba(65, 145, 230, 0.13);
+      border: 1px solid rgba(65, 145, 230, 0.28);
+    }
+
+    .approval-bad {
+      color: #ff8b84;
+      background: rgba(217, 70, 63, 0.12);
+      border: 1px solid rgba(217, 70, 63, 0.25);
+    }
+
+    .approval-none {
       color: var(--ink-faint);
       background: var(--bg-soft);
       border: 1px solid var(--border);
@@ -494,7 +530,7 @@
 
     <p class="courses-description">
       Selecciona un curso para revisar sus postulantes,
-      evaluación, créditos e información del registro.
+      evaluación, índice de aprobación, créditos e información.
     </p>
 
 
@@ -538,11 +574,9 @@
     const COLUMNA_CREDITOS =
       "Créditos aprobados";
 
-    /*
-     * IMPORTANTE:
-     * Esta es la columna que contiene la información
-     * / comentarios de la evaluación.
-     */
+    const COLUMNA_INDICE_APROB =
+      "Índice Aprob.";
+
     const COLUMNA_INFORMACION =
       "INFORMACIÓN";
 
@@ -639,16 +673,6 @@
           .trim();
 
 
-      /*
-       * Permite comparar:
-       *
-       * PÉREZ, MARÍA
-       *
-       * con:
-       *
-       * María Pérez
-       */
-
       if (
         limpio.includes(",")
       ) {
@@ -707,17 +731,71 @@
       }
 
 
-      const numero =
+      /*
+       * Maneja:
+       *
+       * 0,85
+       * 0.85
+       * 85%
+       */
+
+      let limpio =
+        texto
+          .replace(/\s/g, "")
+          .replace("%", "");
+
+
+      let numero;
+
+
+      if (
+        limpio.includes(",")
+      ) {
+
+        limpio =
+          limpio.replace(
+            /\./g,
+            ""
+          ).replace(
+            ",",
+            "."
+          );
+
+      }
+
+
+      numero =
         Number(
-          texto
-            .replace(/\s/g, "")
-            .replace(",", ".")
+          limpio
         );
 
 
-      return Number.isFinite(numero)
-        ? numero
-        : null;
+      if (
+        !Number.isFinite(numero)
+      ) {
+
+        return null;
+
+      }
+
+
+      /*
+       * Si viene como 85 en vez de 0,85,
+       * lo interpretamos como 85%.
+       */
+
+      if (
+        numero > 1 &&
+        numero <= 100
+      ) {
+
+        numero =
+          numero / 100;
+
+      }
+
+
+      return numero;
 
     }
 
@@ -1040,11 +1118,6 @@
         );
 
 
-      /*
-       * AHORA BUSCAMOS ESPECÍFICAMENTE
-       * LA COLUMNA "INFORMACIÓN".
-       */
-
       const indiceInformacion =
         encontrarColumna(
           cabeceras,
@@ -1070,23 +1143,6 @@
         indiceEvaluacion >= 0
           ? indiceEvaluacion
           : 2;
-
-
-      /*
-       * Si no encontramos INFORMACIÓN,
-       * NO usamos otra columna como reemplazo.
-       * Esto evita mostrar datos incorrectos.
-       */
-
-      if (
-        indiceInformacion < 0
-      ) {
-
-        console.warn(
-          'No se encontró la columna "INFORMACIÓN".'
-        );
-
-      }
 
 
       registroAyudantes =
@@ -1134,12 +1190,6 @@
         {
           columnas:
             cabeceras,
-          nombre:
-            cabeceras[nombreCol],
-          rut:
-            cabeceras[rutCol],
-          evaluacion:
-            cabeceras[evaluacionCol],
           informacion:
             indiceInformacion >= 0
               ? cabeceras[
@@ -1231,10 +1281,6 @@
       nombre
     ) {
 
-      /*
-       * Primero RUT.
-       */
-
       if (rut) {
 
         const persona =
@@ -1251,11 +1297,6 @@
 
       }
 
-
-      /*
-       * Si no hay coincidencia por RUT,
-       * buscamos por nombre.
-       */
 
       if (nombre) {
 
@@ -1421,6 +1462,19 @@
         );
 
 
+      /*
+       * NUEVO:
+       * Buscamos exactamente "Índice Aprob."
+       */
+
+      const indiceAprobacion =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_INDICE_APROB)
+        );
+
+
       let indiceRut =
         cabeceras.findIndex(
           columna => {
@@ -1551,6 +1605,25 @@
             : null;
 
 
+        /*
+         * NUEVO:
+         * Índice de aprobación directamente
+         * desde el Excel que se sube.
+         */
+
+        const indiceAprobacionValor =
+          indiceAprobacion >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceAprobacion
+                  })
+                ]?.v
+              )
+            : null;
+
+
         postulantes.push({
 
           nombre:
@@ -1563,6 +1636,9 @@
 
           evaluacion,
 
+          indiceAprobacion:
+            indiceAprobacionValor,
+
           creditos,
 
           informacion
@@ -1573,7 +1649,7 @@
 
 
       /*
-       * Ordenamos:
+       * Orden:
        *
        * Evaluación 4
        * Evaluación 3
@@ -1981,6 +2057,10 @@
                   </th>
 
                   <th>
+                    Índice Aprob.
+                  </th>
+
+                  <th>
                     Créditos
                   </th>
 
@@ -2021,6 +2101,10 @@
         .map(
           (persona, indice) => {
 
+            /* -------------------------
+               EVALUACIÓN
+               ------------------------- */
+
             let claseEvaluacion =
               "evaluation-none";
 
@@ -2044,6 +2128,47 @@
             }
 
 
+            /* -------------------------
+               ÍNDICE DE APROBACIÓN
+               ------------------------- */
+
+            let claseAprobacion =
+              "approval-none";
+
+            let textoAprobacion =
+              "—";
+
+
+            if (
+              persona.indiceAprobacion !== null
+            ) {
+
+              textoAprobacion =
+                persona.indiceAprobacion
+                  .toFixed(2)
+                  .replace(
+                    ".",
+                    ","
+                  );
+
+
+              /*
+               * 0,85 o superior = AZUL
+               * menor a 0,85 = ROJO
+               */
+
+              claseAprobacion =
+                persona.indiceAprobacion >= 0.85
+                  ? "approval-good"
+                  : "approval-bad";
+
+            }
+
+
+            /* -------------------------
+               CRÉDITOS
+               ------------------------- */
+
             const pocosCreditos =
               persona.creditos !== null &&
               persona.creditos < 120;
@@ -2065,6 +2190,10 @@
                 : "";
 
 
+            /* -------------------------
+               NOTA
+               ------------------------- */
+
             const nota =
               persona.nota === null
                 ? "—"
@@ -2076,6 +2205,10 @@
                   );
 
 
+            /* -------------------------
+               RUT
+               ------------------------- */
+
             const rut =
               persona.rut
                 ? escaparHTML(
@@ -2083,6 +2216,10 @@
                   )
                 : "—";
 
+
+            /* -------------------------
+               INFORMACIÓN
+               ------------------------- */
 
             const informacion =
               persona.informacion
@@ -2140,6 +2277,17 @@
                     class="evaluation ${claseEvaluacion}"
                   >
                     ${textoEvaluacion}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="approval-index ${claseAprobacion}"
+                  >
+                    ${textoAprobacion}
                   </span>
 
                 </td>
