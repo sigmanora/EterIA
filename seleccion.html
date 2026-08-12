@@ -659,6 +659,9 @@
     const AYUDANTES_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
 
+    const AUX_CONTROL_URL =
+      "https://docs.google.com/spreadsheets/d/17kI98Zdcb9FTfsNAAAUe0JRx2MVJ8tqbL4b4qqroz-o/export?format=csv&gid=508820253";
+
 
     const COLUMNA_NOMBRE =
       "Postulante";
@@ -766,6 +769,9 @@
       null;
 
     let registroAyudantes =
+      null;
+
+    let registroAuxControl =
       null;
 
     let cursos =
@@ -1180,20 +1186,23 @@
        CARGAR REGISTRO
        ========================================================= */
 
-    async function cargarRegistro() {
+    async function cargarRegistroDesde(
+      url,
+      cacheActual
+    ) {
 
       if (
-        registroAyudantes
+        cacheActual
       ) {
 
-        return registroAyudantes;
+        return cacheActual;
 
       }
 
 
       const respuesta =
         await fetch(
-          AYUDANTES_URL,
+          url,
           {
             cache:
               "no-store"
@@ -1299,7 +1308,7 @@
           : 2;
 
 
-      registroAyudantes =
+      const registro =
         filas
           .slice(1)
           .filter(
@@ -1342,6 +1351,7 @@
       console.log(
         "Registro cargado:",
         {
+          url,
           columnas:
             cabeceras,
           informacion:
@@ -1354,7 +1364,33 @@
       );
 
 
+      return registro;
+
+    }
+
+
+    async function cargarRegistroAyudantes() {
+
+      registroAyudantes =
+        await cargarRegistroDesde(
+          AYUDANTES_URL,
+          registroAyudantes
+        );
+
       return registroAyudantes;
+
+    }
+
+
+    async function cargarRegistroAuxControl() {
+
+      registroAuxControl =
+        await cargarRegistroDesde(
+          AUX_CONTROL_URL,
+          registroAuxControl
+        );
+
+      return registroAuxControl;
 
     }
 
@@ -1536,7 +1572,8 @@
     function procesarCurso(
       nombreHoja,
       hoja,
-      indices
+      indicesAyudantes,
+      indicesAuxControl
     ) {
 
       const filaCabecera =
@@ -1729,9 +1766,48 @@
           );
 
 
+        const cargoValor =
+          indiceCargo >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceCargo
+                  })
+                ]?.v
+              )
+            : "";
+
+
+        const comentarioValor =
+          indiceComentario >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceComentario
+                  })
+                ]?.v
+              )
+            : "";
+
+
+        const tipo =
+          detectarTipoPostulacion(
+            cargoValor,
+            comentarioValor
+          );
+
+
+        const indicesPersona =
+          tipo === "aux_control"
+            ? indicesAuxControl
+            : indicesAyudantes;
+
+
         const persona =
           buscarPersona(
-            indices,
+            indicesPersona,
             rut,
             nombre
           );
@@ -1792,39 +1868,6 @@
                 ]?.v
               )
             : null;
-
-
-        const cargoValor =
-          indiceCargo >= 0
-            ? textoSeguro(
-                hoja[
-                  XLSX.utils.encode_cell({
-                    r: fila,
-                    c: indiceCargo
-                  })
-                ]?.v
-              )
-            : "";
-
-
-        const comentarioValor =
-          indiceComentario >= 0
-            ? textoSeguro(
-                hoja[
-                  XLSX.utils.encode_cell({
-                    r: fila,
-                    c: indiceComentario
-                  })
-                ]?.v
-              )
-            : "";
-
-
-        const tipo =
-          detectarTipoPostulacion(
-            cargoValor,
-            comentarioValor
-          );
 
 
         postulantes.push({
@@ -1962,8 +2005,25 @@
 
       try {
 
-        const registro =
-          await cargarRegistro();
+        const [
+          registroAyu,
+          registroAux
+        ] =
+          await Promise.all([
+            cargarRegistroAyudantes(),
+            cargarRegistroAuxControl().catch(
+              err => {
+
+                console.warn(
+                  "No se pudo cargar el registro de aux. de control:",
+                  err
+                );
+
+                return [];
+
+              }
+            )
+          ]);
 
 
         mostrarEstado(
@@ -1989,9 +2049,14 @@
           );
 
 
-        const indices =
+        const indicesAyudantes =
           construirIndices(
-            registro
+            registroAyu
+          );
+
+        const indicesAuxControl =
+          construirIndices(
+            registroAux
           );
 
 
@@ -2013,7 +2078,8 @@
             procesarCurso(
               nombreHoja,
               hoja,
-              indices
+              indicesAyudantes,
+              indicesAuxControl
             );
 
 
