@@ -1805,12 +1805,33 @@
             : indicesAyudantes;
 
 
-        const persona =
+        let persona =
           buscarPersona(
             indicesPersona,
             rut,
             nombre
           );
+
+
+        /*
+         * Si postula como aux. de control pero no tiene
+         * evaluación registrada como tal, se usa su
+         * evaluación como ayudante (si la tiene).
+         */
+
+        if (
+          !persona &&
+          tipo === "aux_control"
+        ) {
+
+          persona =
+            buscarPersona(
+              indicesAyudantes,
+              rut,
+              nombre
+            );
+
+        }
 
 
         const evaluacion =
