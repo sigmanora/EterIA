@@ -107,7 +107,35 @@
       white-space: nowrap;
     }
 
-    /* ----- Panel de evaluaciones (dinámico) ----- */
+    /* ----- Selector de curso ----- */
+    .curso-selector {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .curso-selector label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .curso-selector select {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .curso-selector select:focus { outline: none; border-color: var(--accent); }
     .controles-panel {
       margin-top: 22px;
       border: 1px solid var(--border);
@@ -426,6 +454,12 @@
         y la evaluación se calcula sola. Todo queda guardado en este navegador.
       </p>
 
+      <!-- CURSO -->
+      <div class="curso-selector">
+        <label for="select-curso">Curso</label>
+        <select id="select-curso"></select>
+      </div>
+
       <!-- ROSTER -->
       <div class="roster-controls">
         <form id="form-agregar" class="roster-form">
@@ -458,9 +492,9 @@
       <!-- NOTAS: umbrales -->
       <div class="settings-umbrales">
         <span class="settings-hint-inline">Nota final:</span>
-        <label>4 si evaluación ≥ <input type="number" id="umbral-u4" min="0" max="100">%</label>
-        <label>3 si evaluación ≥ <input type="number" id="umbral-u3" min="0" max="100">%</label>
-        <label>2 si evaluación ≥ <input type="number" id="umbral-u2" min="0" max="100">%</label>
+        <span class="settings-hint-inline">4 si evaluación ≥ 95%</span>
+        <span class="settings-hint-inline">3 si evaluación ≥ 80%</span>
+        <span class="settings-hint-inline">2 si evaluación ≥ 70%</span>
         <span class="settings-hint-inline">(bajo el último umbral → Nota 1)</span>
       </div>
 
@@ -498,7 +532,12 @@
        Bitácora interactiva de faltas + cálculo de evaluación.
        ========================================================= */
 
-    const STORAGE_KEY = "eteria_evaluacion_v2";
+    const CURSOS = ["MA1001", "MA1101", "MA1002", "MA1102", "MA2601", "MA2001", "MA2002"];
+    const CURSO_ACTUAL_KEY = "eteria_evaluacion_curso_actual";
+
+    function storageKey(curso) {
+      return `eteria_evaluacion_v2_${curso}`;
+    }
 
     // Las categorías de falta son fijas, con un descuento fijo (no configurable)
     // por cada vez que se marcan en una evaluación.
@@ -510,18 +549,20 @@
       { key: "reclamos", label: "Atraso o no respuesta a reclamos", tipo: "fuerte", peso: 4 },
     ];
 
+    // Umbrales de nota final, fijos (no configurables).
+    const UMBRALES = { u4: 95, u3: 80, u2: 70 };
+
     function estadoInicial() {
       return {
         ayudantes: [],
         faltas: {},
         controles: [],
-        umbrales: { u4: 95, u3: 85, u2: 70 },
       };
     }
 
-    function cargarEstado() {
+    function cargarEstado(curso) {
       try {
-        const guardado = localStorage.getItem(STORAGE_KEY);
+        const guardado = localStorage.getItem(storageKey(curso));
         if (!guardado) return estadoInicial();
         const datos = JSON.parse(guardado);
         const base = estadoInicial();
@@ -529,21 +570,37 @@
           ayudantes: Array.isArray(datos.ayudantes) ? datos.ayudantes : base.ayudantes,
           faltas: datos.faltas && typeof datos.faltas === "object" ? datos.faltas : base.faltas,
           controles: Array.isArray(datos.controles) ? datos.controles : base.controles,
-          umbrales: { ...base.umbrales, ...(datos.umbrales || {}) },
         };
       } catch {
         return estadoInicial();
       }
     }
 
-    let estado = cargarEstado();
+    function cargarCursoActual() {
+      const guardado = localStorage.getItem(CURSO_ACTUAL_KEY);
+      return CURSOS.includes(guardado) ? guardado : CURSOS[0];
+    }
+
+    let cursoActual = cargarCursoActual();
+    let estado = cargarEstado(cursoActual);
 
     function guardarEstado() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+        localStorage.setItem(storageKey(cursoActual), JSON.stringify(estado));
       } catch (err) {
         console.error("No se pudo guardar en este navegador:", err);
       }
+    }
+
+    function cambiarCurso(nuevoCurso) {
+      if (!CURSOS.includes(nuevoCurso) || nuevoCurso === cursoActual) return;
+      cursoActual = nuevoCurso;
+      localStorage.setItem(CURSO_ACTUAL_KEY, cursoActual);
+      estado = cargarEstado(cursoActual);
+      renderCabecera();
+      renderControles();
+      renderTabla();
+      document.getElementById("estado").classList.add("hidden");
     }
 
     /* ----- Utilidades ----- */
@@ -642,7 +699,7 @@
       }
 
       const porcentaje = Math.max(0, Math.round((100 - deduccion) * 10) / 10);
-      const { u4, u3, u2 } = estado.umbrales;
+      const { u4, u3, u2 } = UMBRALES;
       let nota = 1;
       if (porcentaje >= u4) nota = 4;
       else if (porcentaje >= u3) nota = 3;
@@ -839,16 +896,11 @@
 
     /* ----- Configuración ----- */
 
-    function inicializarConfiguracion() {
-      ["u4", "u3", "u2"].forEach(k => {
-        const input = document.getElementById(`umbral-${k}`);
-        input.value = estado.umbrales[k];
-        input.addEventListener("input", () => {
-          estado.umbrales[k] = Number(input.value) || 0;
-          guardarEstado();
-          renderTabla();
-        });
-      });
+    function inicializarSelectorCurso() {
+      const select = document.getElementById("select-curso");
+      select.innerHTML = CURSOS.map(c => `<option value="${c}">${c}</option>`).join("");
+      select.value = cursoActual;
+      select.addEventListener("change", () => cambiarCurso(select.value));
     }
 
     /* ----- Eventos: tabla (delegación) ----- */
@@ -984,7 +1036,7 @@
 
       const salida = XLSX.write(wb, { bookType: "xlsx", type: "array" });
       const blob = new Blob([salida], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      descargarBlob(blob, "Evaluacion ayudantes.xlsx");
+      descargarBlob(blob, `Evaluacion ayudantes - ${cursoActual}.xlsx`);
       mostrarEstado("Excel descargado.", "success");
     });
 
@@ -1005,7 +1057,7 @@
         .join("\r\n");
 
       const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      descargarBlob(blob, "registro-ayudantes.csv");
+      descargarBlob(blob, `registro-ayudantes-${cursoActual}.csv`);
       mostrarEstado(
         "CSV descargado. Súbelo (o pega sus datos) en la hoja publicada que usa la página Seleccionar ayudantes.",
         "success"
@@ -1013,9 +1065,11 @@
     });
 
     document.getElementById("reiniciar").addEventListener("click", () => {
-      if (confirm("Esto borrará todos los ayudantes y faltas registradas en este navegador. ¿Continuar?")) {
+      if (confirm(`Esto borrará todos los ayudantes y faltas registradas para ${cursoActual} en este navegador. ¿Continuar?`)) {
         estado = estadoInicial();
         guardarEstado();
+        renderCabecera();
+        renderControles();
         renderTabla();
         mostrarEstado("Datos reiniciados.", "success");
       }
@@ -1023,9 +1077,9 @@
 
     /* ----- Inicio ----- */
 
+    inicializarSelectorCurso();
     renderCabecera();
     renderControles();
-    inicializarConfiguracion();
     renderTabla();
   </script>
 
