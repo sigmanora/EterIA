@@ -1,7 +1,29 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>EterIA — Selección de ayudantes</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>  <style>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>EterIA — Selección de ayudantes</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+  ></script>
+
+
+  <style>
+
     /* =========================================================
        ETERIA — SELECCIÓN
        ========================================================= */
@@ -11,6 +33,7 @@
       max-width: none !important;
     }
 
+
     .selection-actions {
       display: flex;
       align-items: center;
@@ -19,10 +42,12 @@
       flex-wrap: wrap;
     }
 
+
     .upload-box {
       width: 100%;
       margin-top: 25px;
     }
+
 
     .file-input-wrapper {
       border: 1px dashed var(--border);
@@ -33,9 +58,11 @@
       transition: 0.2s ease;
     }
 
+
     .file-input-wrapper:hover {
       border-color: var(--accent);
     }
+
 
     .file-input-wrapper input[type="file"] {
       width: 100%;
@@ -43,6 +70,7 @@
       color: var(--ink-soft);
       font-size: 13px;
     }
+
 
     .file-name {
       margin-top: 12px;
@@ -52,11 +80,13 @@
       min-height: 16px;
     }
 
+
     .process-button {
       width: auto;
       min-width: 220px;
       margin-top: 0;
     }
+
 
     .status {
       margin-top: 18px;
@@ -69,20 +99,24 @@
       line-height: 1.5;
     }
 
+
     .status.loading {
       border-color: rgba(240, 185, 77, 0.35);
       color: var(--gold);
     }
+
 
     .status.success {
       border-color: rgba(80, 200, 120, 0.35);
       color: #8ee6a8;
     }
 
+
     .status.error {
       border-color: rgba(217, 70, 63, 0.45);
       color: #ff8b84;
     }
+
 
     .hidden {
       display: none !important;
@@ -97,6 +131,7 @@
       margin-top: 38px;
     }
 
+
     .courses-title {
       margin: 0 0 6px;
       font-family: var(--font-display);
@@ -105,12 +140,14 @@
       color: var(--ink);
     }
 
+
     .courses-description {
       margin: 0 0 20px;
       color: var(--ink-soft);
       font-size: 13px;
       line-height: 1.5;
     }
+
 
     .course-tabs {
       display: flex;
@@ -119,6 +156,7 @@
       padding: 5px 0 14px;
       scrollbar-width: thin;
     }
+
 
     .course-tab {
       flex: none;
@@ -134,10 +172,12 @@
       white-space: nowrap;
     }
 
+
     .course-tab:hover {
       border-color: var(--accent);
       color: var(--ink);
     }
+
 
     .course-tab.active {
       border-color: var(--accent);
@@ -147,12 +187,13 @@
 
 
     /* =========================================================
-       ENCABEZADO DEL CURSO
+       ENCABEZADO
        ========================================================= */
 
     .course-section {
       margin-top: 12px;
     }
+
 
     .course-header {
       display: flex;
@@ -163,6 +204,7 @@
       flex-wrap: wrap;
     }
 
+
     .course-name {
       margin: 0;
       font-family: var(--font-display);
@@ -171,10 +213,29 @@
       color: var(--ink);
     }
 
-    .course-info {
-      margin: 5px 0 0;
-      color: var(--ink-soft);
-      font-size: 12px;
+
+    /* =========================================================
+       GRUPOS
+       ========================================================= */
+
+    .candidate-group {
+      margin-top: 30px;
+    }
+
+
+    .candidate-group:first-of-type {
+      margin-top: 10px;
+    }
+
+
+    .candidate-group-title {
+      margin: 0 0 12px;
+      padding-bottom: 9px;
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
     }
 
 
@@ -190,12 +251,14 @@
       background: var(--surface);
     }
 
+
     .selection-table {
-      width: 100%;
-      min-width: 1180px;
+      width: max-content;
+      min-width: 100%;
       border-collapse: collapse;
       font-size: 12.5px;
     }
+
 
     .selection-table th {
       padding: 13px 14px;
@@ -211,6 +274,7 @@
       white-space: nowrap;
     }
 
+
     .selection-table td {
       padding: 13px 14px;
       border-bottom: 1px solid var(--border-soft);
@@ -218,21 +282,26 @@
       vertical-align: middle;
     }
 
+
     .selection-table tbody tr:last-child td {
       border-bottom: none;
     }
+
 
     .selection-table tbody tr:hover {
       background: var(--surface-hover);
     }
 
+
     .position {
       width: 45px;
+      min-width: 45px;
       text-align: center;
       color: var(--ink-faint) !important;
       font-family: var(--font-mono);
       font-size: 11px;
     }
+
 
     .postulante {
       color: var(--ink) !important;
@@ -242,7 +311,7 @@
 
 
     /* =========================================================
-       EVALUACIÓN
+       NOTA REGISTRO
        ========================================================= */
 
     .evaluation {
@@ -258,17 +327,20 @@
       font-size: 11px;
     }
 
+
     .evaluation-good {
       color: #8ee6a8;
       background: rgba(46, 160, 67, 0.14);
       border: 1px solid rgba(46, 160, 67, 0.25);
     }
 
+
     .evaluation-bad {
       color: #ff8b84;
       background: rgba(217, 70, 63, 0.12);
       border: 1px solid rgba(217, 70, 63, 0.25);
     }
+
 
     .evaluation-none {
       color: var(--ink-faint);
@@ -294,17 +366,20 @@
       font-size: 11px;
     }
 
+
     .approval-good {
       color: #70b7ff;
       background: rgba(65, 145, 230, 0.13);
       border: 1px solid rgba(65, 145, 230, 0.28);
     }
 
+
     .approval-bad {
       color: #ff8b84;
       background: rgba(217, 70, 63, 0.12);
       border: 1px solid rgba(217, 70, 63, 0.25);
     }
+
 
     .approval-none {
       color: var(--ink-faint);
@@ -322,6 +397,7 @@
       font-weight: 600;
     }
 
+
     .credit-warning {
       display: inline-block;
       margin-left: 7px;
@@ -338,33 +414,22 @@
 
 
     /* =========================================================
-       INFORMACIÓN / COMENTARIOS
+       COMENTARIOS
        ========================================================= */
 
     .comment-cell {
-      min-width: 320px;
-      max-width: 480px;
+      min-width: 280px;
+      max-width: 450px;
+      white-space: normal !important;
     }
 
-    .comment-box {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
+
+    .comment-text {
+      white-space: normal;
+      overflow-wrap: anywhere;
       line-height: 1.45;
     }
 
-    .comment-icon {
-      flex: none;
-      font-size: 13px;
-      margin-top: 1px;
-    }
-
-    .comment-text {
-      color: var(--ink-soft);
-      font-size: 11.5px;
-      white-space: normal;
-      overflow-wrap: anywhere;
-    }
 
     .comment-empty {
       color: var(--ink-faint);
@@ -374,7 +439,16 @@
 
 
     /* =========================================================
-       SIN RESULTADOS
+       TIPO
+       ========================================================= */
+
+    .type-cell {
+      white-space: nowrap;
+    }
+
+
+    /* =========================================================
+       NO RESULTADOS
        ========================================================= */
 
     .no-results {
@@ -383,6 +457,7 @@
       color: var(--ink-faint);
       font-size: 13px;
     }
+
 
     button:disabled {
       opacity: 0.45;
@@ -401,14 +476,17 @@
         padding: 28px 20px !important;
       }
 
+
       .selection-actions {
         flex-direction: column;
         align-items: stretch;
       }
 
+
       .process-button {
         width: 100%;
       }
+
 
       .course-tabs {
         margin-right: -5px;
@@ -416,146 +494,184 @@
 
     }
 
-  </style></head><body class="seleccion">  <!-- =========================================================
+  </style>
+
+</head>
+
+
+<body class="seleccion">
+
+
+  <!-- =========================================================
        HEADER
-       ========================================================= -->  <header class="top-bar"><div class="top-inner">
+       ========================================================= -->
 
-  <a href="index.html" class="logo">
-    COORDINACIÓN &amp; CO.
-  </a>
+  <header class="top-bar">
 
-  <div class="search-box">
-    <input
-      type="text"
-      placeholder="Buscar"
-    >
-    <span class="icon">🔍</span>
-  </div>
+    <div class="top-inner">
 
-  <div class="right-box">
-    EterIA
-  </div>
-
-</div>
-
-  </header>  <!-- =========================================================
-       CONTENIDO
-       ========================================================= -->  <main class="container"><div class="card wide selection-card">
-
-  <span class="badge">
-    Selección
-  </span>
-
-  <h1 style="
-    margin: 0 0 18px;
-    font-family: var(--font-display);
-    font-size: 42px;
-    line-height: 1.05;
-  ">
-    Selección de ayudantes
-  </h1>
-
-  <p class="subtitle">
-    Sube el archivo Excel con las postulaciones para revisar
-    los candidatos organizados por curso.
-  </p>
-
-
-  <!-- =====================================================
-       ARCHIVO
-       ===================================================== -->
-
-  <div class="upload-box">
-
-    <div class="file-input-wrapper">
-
-      <input
-        type="file"
-        id="archivo"
-        accept=".xlsx,.xls"
+      <a
+        href="index.html"
+        class="logo"
       >
+        COORDINACIÓN &amp; CO.
+      </a>
 
-      <div
-        id="nombre-archivo"
-        class="file-name"
-      ></div>
+
+      <div class="search-box">
+
+        <input
+          type="text"
+          placeholder="Buscar"
+        >
+
+        <span class="icon">
+          🔍
+        </span>
+
+      </div>
+
+
+      <div class="right-box">
+        EterIA
+      </div>
 
     </div>
 
-  </div>
+  </header>
 
 
-  <!-- =====================================================
-       BOTÓN
-       ===================================================== -->
+  <!-- =========================================================
+       CONTENIDO
+       ========================================================= -->
 
-  <div class="selection-actions">
+  <main class="container">
 
-    <button
-      id="procesar"
-      class="main-action process-button"
-      type="button"
-      disabled
-    >
-      Mostrar postulantes
-    </button>
-
-  </div>
+    <div class="card wide selection-card">
 
 
-  <!-- =====================================================
-       ESTADO
-       ===================================================== -->
-
-  <div
-    id="estado"
-    class="status"
-  >
-    Selecciona un archivo Excel para comenzar.
-  </div>
+      <span class="badge">
+        Selección
+      </span>
 
 
-  <!-- =====================================================
-       RESULTADOS
-       ===================================================== -->
-
-  <section
-    id="resultados"
-    class="hidden"
-  >
-
-    <h2 class="courses-title">
-      Cursos
-    </h2>
-
-    <p class="courses-description">
-      Selecciona un curso para revisar sus postulantes,
-      evaluación, índice de aprobación, créditos e información.
-    </p>
+      <h1
+        style="
+          margin: 0 0 18px;
+          font-family: var(--font-display);
+          font-size: 42px;
+          line-height: 1.05;
+        "
+      >
+        Selección de ayudantes
+      </h1>
 
 
-    <!-- PESTAÑAS -->
-
-    <div
-      id="course-tabs"
-      class="course-tabs"
-    ></div>
+      <p class="subtitle">
+        Sube el archivo Excel con las postulaciones para revisar
+        los candidatos organizados por curso.
+      </p>
 
 
-    <!-- CURSO ACTIVO -->
+      <!-- =====================================================
+           ARCHIVO
+           ===================================================== -->
 
-    <div
-      id="course-section"
-      class="course-section"
-    ></div>
+      <div class="upload-box">
 
-  </section>
+        <div class="file-input-wrapper">
 
-</div>
+          <input
+            type="file"
+            id="archivo"
+            accept=".xlsx,.xls"
+          >
 
-  </main>  <!-- =========================================================
+
+          <div
+            id="nombre-archivo"
+            class="file-name"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           BOTÓN
+           ===================================================== -->
+
+      <div class="selection-actions">
+
+        <button
+          id="procesar"
+          class="main-action process-button"
+          type="button"
+          disabled
+        >
+          Mostrar postulantes
+        </button>
+
+      </div>
+
+
+      <!-- =====================================================
+           ESTADO
+           ===================================================== -->
+
+      <div
+        id="estado"
+        class="status"
+      >
+        Selecciona un archivo Excel para comenzar.
+      </div>
+
+
+      <!-- =====================================================
+           RESULTADOS
+           ===================================================== -->
+
+      <section
+        id="resultados"
+        class="hidden"
+      >
+
+        <h2 class="courses-title">
+          Cursos
+        </h2>
+
+
+        <p class="courses-description">
+          Selecciona un curso para revisar sus postulantes.
+        </p>
+
+
+        <div
+          id="course-tabs"
+          class="course-tabs"
+        ></div>
+
+
+        <div
+          id="course-section"
+          class="course-section"
+        ></div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+
+  <!-- =========================================================
        JAVASCRIPT
-       ========================================================= -->  <script>
+       ========================================================= -->
+
+  <script>
+
 
     /* =========================================================
        CONFIGURACIÓN
@@ -568,17 +684,21 @@
     const COLUMNA_NOMBRE =
       "Postulante";
 
+
     const COLUMNA_NOTA =
       "Nota Curso (mínimo 5,0)";
+
 
     const COLUMNA_CREDITOS =
       "Créditos aprobados";
 
-    const COLUMNA_INDICE_APROB =
+
+    const COLUMNA_INDICE =
       "Índice Aprob.";
 
-    const COLUMNA_INFORMACION =
-      "INFORMACIÓN";
+
+    const COLUMNA_COMENTARIO =
+      "Comentario";
 
 
     /* =========================================================
@@ -590,30 +710,36 @@
         "archivo"
       );
 
+
     const procesarButton =
       document.getElementById(
         "procesar"
       );
+
 
     const nombreArchivo =
       document.getElementById(
         "nombre-archivo"
       );
 
+
     const estado =
       document.getElementById(
         "estado"
       );
+
 
     const resultados =
       document.getElementById(
         "resultados"
       );
 
+
     const courseTabs =
       document.getElementById(
         "course-tabs"
       );
+
 
     const courseSection =
       document.getElementById(
@@ -624,11 +750,14 @@
     let archivoSeleccionado =
       null;
 
+
     let registroAyudantes =
       null;
 
+
     let cursos =
       [];
+
 
     let cursoActivo =
       0;
@@ -647,31 +776,64 @@
         return "";
       }
 
-      return String(valor).trim();
 
+      return String(valor)
+        .trim();
     }
 
 
-    function normalizarTexto(valor = "") {
+    function normalizarTexto(
+      valor = ""
+    ) {
 
       return textoSeguro(valor)
-        .replace(/"/g, "")
+
+        .replace(
+          /"/g,
+          ""
+        )
+
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+
+        .replace(
+          /[\u0300-\u036f]/g,
+          ""
+        )
+
         .toLowerCase()
-        .replace(/\s+/g, " ")
+
+        .replace(
+          /\s+/g,
+          " "
+        )
+
         .trim();
 
     }
 
 
-    function normalizarNombre(valor = "") {
+    function normalizarNombre(
+      valor = ""
+    ) {
 
       const limpio =
         textoSeguro(valor)
-          .replace(/"/g, "")
+          .replace(
+            /"/g,
+            ""
+          )
           .trim();
 
+
+      /*
+       * Si viene como:
+       *
+       * APELLIDOS, NOMBRES
+       *
+       * lo transformamos a:
+       *
+       * NOMBRES APELLIDOS
+       */
 
       if (
         limpio.includes(",")
@@ -680,16 +842,22 @@
         const partes =
           limpio.split(",");
 
+
         const apellidos =
-          partes.shift().trim();
+          partes
+            .shift()
+            .trim();
+
 
         const nombres =
-          partes.join(",").trim();
+          partes
+            .join(",")
+            .trim();
+
 
         return normalizarTexto(
           `${nombres} ${apellidos}`
         );
-
       }
 
 
@@ -700,16 +868,23 @@
     }
 
 
-    function normalizarRut(valor = "") {
+    function normalizarRut(
+      valor = ""
+    ) {
 
       return textoSeguro(valor)
         .toUpperCase()
-        .replace(/[\s.\-]/g, "");
+        .replace(
+          /[\s.\-]/g,
+          ""
+        );
 
     }
 
 
-    function parseNumero(valor) {
+    function parseNumero(
+      valor
+    ) {
 
       if (
         typeof valor === "number"
@@ -731,43 +906,46 @@
       }
 
 
-      /*
-       * Maneja:
-       *
-       * 0,85
-       * 0.85
-       * 85%
-       */
-
       let limpio =
         texto
-          .replace(/\s/g, "")
-          .replace("%", "");
+          .replace(
+            /\s/g,
+            ""
+          )
+          .replace(
+            "%",
+            ""
+          );
 
 
-      let numero;
-
+      /*
+       * Maneja números como:
+       *
+       * 6,5
+       * 6.5
+       * 120
+       */
 
       if (
         limpio.includes(",")
       ) {
 
         limpio =
-          limpio.replace(
-            /\./g,
-            ""
-          ).replace(
-            ",",
-            "."
-          );
+          limpio
+            .replace(
+              /\./g,
+              ""
+            )
+            .replace(
+              ",",
+              "."
+            );
 
       }
 
 
-      numero =
-        Number(
-          limpio
-        );
+      const numero =
+        Number(limpio);
 
 
       if (
@@ -775,23 +953,6 @@
       ) {
 
         return null;
-
-      }
-
-
-      /*
-       * Si viene como 85 en vez de 0,85,
-       * lo interpretamos como 85%.
-       */
-
-      if (
-        numero > 1 &&
-        numero <= 100
-      ) {
-
-        numero =
-          numero / 100;
-
       }
 
 
@@ -800,7 +961,9 @@
     }
 
 
-    function evaluacionNumero(valor) {
+    function evaluacionNumero(
+      valor
+    ) {
 
       const numero =
         parseInt(
@@ -828,6 +991,7 @@
       estado.textContent =
         mensaje;
 
+
       estado.className =
         `status ${tipo}`.trim();
 
@@ -840,18 +1004,30 @@
 
     function encontrarColumna(
       cabeceras,
-      posiblesNombres
+      nombres
     ) {
 
+      /*
+       * Primero buscamos coincidencia exacta.
+       */
+
       for (
-        const posible of posiblesNombres
+        const nombre
+        of nombres
       ) {
+
+        const buscado =
+          normalizarTexto(
+            nombre
+          );
+
 
         const indice =
           cabeceras.findIndex(
             cabecera =>
-              normalizarTexto(cabecera) ===
-              normalizarTexto(posible)
+              normalizarTexto(
+                cabecera
+              ) === buscado
           );
 
 
@@ -860,25 +1036,33 @@
         ) {
 
           return indice;
-
         }
 
       }
 
 
+      /*
+       * Luego permitimos coincidencia
+       * parcial.
+       */
+
       for (
-        const posible of posiblesNombres
+        const nombre
+        of nombres
       ) {
 
         const buscado =
-          normalizarTexto(posible);
+          normalizarTexto(
+            nombre
+          );
 
 
         const indice =
           cabeceras.findIndex(
             cabecera =>
-              normalizarTexto(cabecera)
-                .includes(buscado)
+              normalizarTexto(
+                cabecera
+              ).includes(buscado)
           );
 
 
@@ -887,7 +1071,6 @@
         ) {
 
           return indice;
-
         }
 
       }
@@ -899,10 +1082,12 @@
 
 
     /* =========================================================
-       CSV
+       CSV DEL REGISTRO
        ========================================================= */
 
-    function parseCSV(texto) {
+    function parseCSV(
+      texto
+    ) {
 
       const filas = [];
 
@@ -910,7 +1095,8 @@
 
       let campo = "";
 
-      let dentroComillas = false;
+      let dentroComillas =
+        false;
 
 
       for (
@@ -921,6 +1107,7 @@
 
         const caracter =
           texto[i];
+
 
         const siguiente =
           texto[i + 1];
@@ -936,6 +1123,7 @@
           ) {
 
             campo += '"';
+
             i++;
 
           }
@@ -951,11 +1139,13 @@
 
           else {
 
-            campo += caracter;
+            campo +=
+              caracter;
 
           }
 
         }
+
 
         else if (
           caracter === '"'
@@ -966,14 +1156,19 @@
 
         }
 
+
         else if (
           caracter === ","
         ) {
 
-          fila.push(campo);
+          fila.push(
+            campo
+          );
+
           campo = "";
 
         }
+
 
         else if (
           caracter === "\r"
@@ -983,13 +1178,18 @@
 
         }
 
+
         else if (
           caracter === "\n"
         ) {
 
-          fila.push(campo);
+          fila.push(
+            campo
+          );
 
-          filas.push(fila);
+          filas.push(
+            fila
+          );
 
           fila = [];
 
@@ -997,9 +1197,11 @@
 
         }
 
+
         else {
 
-          campo += caracter;
+          campo +=
+            caracter;
 
         }
 
@@ -1011,8 +1213,13 @@
         fila.length
       ) {
 
-        fila.push(campo);
-        filas.push(fila);
+        fila.push(
+          campo
+        );
+
+        filas.push(
+          fila
+        );
 
       }
 
@@ -1023,7 +1230,7 @@
 
 
     /* =========================================================
-       CARGAR REGISTRO
+       CARGAR REGISTRO DE AYUDANTES
        ========================================================= */
 
     async function cargarRegistro() {
@@ -1033,7 +1240,6 @@
       ) {
 
         return registroAyudantes;
-
       }
 
 
@@ -1052,7 +1258,7 @@
       ) {
 
         throw new Error(
-          "No se pudo acceder al registro de evaluaciones."
+          "No se pudo acceder al registro de ayudantes."
         );
 
       }
@@ -1063,7 +1269,9 @@
 
 
       const filas =
-        parseCSV(texto);
+        parseCSV(
+          texto
+        );
 
 
       if (
@@ -1071,7 +1279,7 @@
       ) {
 
         throw new Error(
-          "El registro de evaluaciones está vacío."
+          "El registro de ayudantes está vacío."
         );
 
       }
@@ -1118,15 +1326,6 @@
         );
 
 
-      const indiceInformacion =
-        encontrarColumna(
-          cabeceras,
-          [
-            COLUMNA_INFORMACION
-          ]
-        );
-
-
       const nombreCol =
         indiceNombre >= 0
           ? indiceNombre
@@ -1151,7 +1350,9 @@
           .filter(
             fila =>
               textoSeguro(
-                fila[nombreCol]
+                fila[
+                  nombreCol
+                ]
               )
           )
           .map(
@@ -1159,45 +1360,27 @@
 
               nombre:
                 textoSeguro(
-                  fila[nombreCol]
+                  fila[
+                    nombreCol
+                  ]
                 ),
 
               rut:
                 textoSeguro(
-                  fila[rutCol]
+                  fila[
+                    rutCol
+                  ]
                 ),
 
               evaluacion:
                 evaluacionNumero(
-                  fila[evaluacionCol]
-                ),
-
-              informacion:
-                indiceInformacion >= 0
-                  ? textoSeguro(
-                      fila[
-                        indiceInformacion
-                      ]
-                    )
-                  : ""
+                  fila[
+                    evaluacionCol
+                  ]
+                )
 
             })
           );
-
-
-      console.log(
-        "Registro cargado:",
-        {
-          columnas:
-            cabeceras,
-          informacion:
-            indiceInformacion >= 0
-              ? cabeceras[
-                  indiceInformacion
-                ]
-              : "NO ENCONTRADA"
-        }
-      );
 
 
       return registroAyudantes;
@@ -1206,7 +1389,7 @@
 
 
     /* =========================================================
-       ÍNDICES
+       ÍNDICES DEL REGISTRO
        ========================================================= */
 
     function construirIndices(
@@ -1216,18 +1399,21 @@
       const porRut =
         new Map();
 
+
       const porNombre =
         new Map();
 
 
       for (
-        const persona of registro
+        const persona
+        of registro
       ) {
 
         const rut =
           normalizarRut(
             persona.rut
           );
+
 
         const nombre =
           normalizarNombre(
@@ -1281,10 +1467,18 @@
       nombre
     ) {
 
-      if (rut) {
+      /*
+       * Primero intentamos por RUT.
+       */
+
+      if (
+        rut
+      ) {
 
         const persona =
-          indices.porRut.get(rut);
+          indices.porRut.get(
+            rut
+          );
 
 
         if (
@@ -1292,16 +1486,24 @@
         ) {
 
           return persona;
-
         }
 
       }
 
 
-      if (nombre) {
+      /*
+       * Si no encontramos RUT,
+       * buscamos por nombre.
+       */
+
+      if (
+        nombre
+      ) {
 
         const persona =
-          indices.porNombre.get(nombre);
+          indices.porNombre.get(
+            nombre
+          );
 
 
         if (
@@ -1309,7 +1511,6 @@
         ) {
 
           return persona;
-
         }
 
       }
@@ -1321,7 +1522,7 @@
 
 
     /* =========================================================
-       ENCONTRAR CABECERA DEL EXCEL
+       ENCONTRAR FILA DE CABECERAS
        ========================================================= */
 
     function encontrarCabecera(
@@ -1357,8 +1558,12 @@
 
 
           if (
-            normalizarTexto(celda?.v) ===
-            normalizarTexto(COLUMNA_NOMBRE)
+            normalizarTexto(
+              celda?.v
+            ) ===
+            normalizarTexto(
+              COLUMNA_NOMBRE
+            )
           ) {
 
             return fila;
@@ -1371,6 +1576,45 @@
 
 
       return -1;
+
+    }
+
+
+    /* =========================================================
+       DETERMINAR TIPO
+       ========================================================= */
+
+    function determinarTipo(
+      comentario
+    ) {
+
+      const texto =
+        normalizarTexto(
+          comentario
+        );
+
+
+      /*
+       * Si contiene cualquiera de estas
+       * expresiones, lo consideramos
+       * auxiliar de control.
+       */
+
+      if (
+        texto.includes(
+          "aux de control"
+        ) ||
+        texto.includes(
+          "auxiliar de control"
+        )
+      ) {
+
+        return "Auxiliares de control";
+
+      }
+
+
+      return "Ayudantes";
 
     }
 
@@ -1396,7 +1640,6 @@
       ) {
 
         return null;
-
       }
 
 
@@ -1406,7 +1649,13 @@
         );
 
 
-      const cabeceras = [];
+      /*
+       * GUARDAMOS TODAS LAS COLUMNAS
+       * DEL EXCEL.
+       */
+
+      const cabeceras =
+        [];
 
 
       for (
@@ -1415,7 +1664,7 @@
         columna++
       ) {
 
-        cabeceras.push(
+        let encabezado =
           textoSeguro(
             hoja[
               XLSX.utils.encode_cell({
@@ -1423,17 +1672,39 @@
                 c: columna
               })
             ]?.v
-          )
+          );
+
+
+        /*
+         * Si una columna está vacía,
+         * le ponemos un nombre temporal.
+         *
+         * NO eliminamos la columna.
+         */
+
+        if (
+          !encabezado
+        ) {
+
+          encabezado =
+            `Columna ${columna + 1}`;
+
+        }
+
+
+        cabeceras.push(
+          encabezado
         );
 
       }
 
 
       const indiceNombre =
-        cabeceras.findIndex(
-          columna =>
-            normalizarTexto(columna) ===
-            normalizarTexto(COLUMNA_NOMBRE)
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_NOMBRE
+          ]
         );
 
 
@@ -1442,72 +1713,89 @@
       ) {
 
         return null;
-
       }
 
 
       const indiceNota =
-        cabeceras.findIndex(
-          columna =>
-            normalizarTexto(columna) ===
-            normalizarTexto(COLUMNA_NOTA)
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_NOTA,
+            "Nota curso",
+            "Nota Curso"
+          ]
         );
 
 
       const indiceCreditos =
-        cabeceras.findIndex(
-          columna =>
-            normalizarTexto(columna) ===
-            normalizarTexto(COLUMNA_CREDITOS)
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_CREDITOS
+          ]
         );
 
-
-      /*
-       * NUEVO:
-       * Buscamos exactamente "Índice Aprob."
-       */
 
       const indiceAprobacion =
-        cabeceras.findIndex(
-          columna =>
-            normalizarTexto(columna) ===
-            normalizarTexto(COLUMNA_INDICE_APROB)
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_INDICE,
+            "Índice Aprob.",
+            "Indice Aprob."
+          ]
         );
 
 
-      let indiceRut =
-        cabeceras.findIndex(
-          columna => {
-
-            const nombre =
-              normalizarTexto(
-                columna
-              );
-
-            return (
-              nombre === "rut" ||
-              nombre === "r.u.t." ||
-              nombre === "rut postulante"
-            );
-
-          }
+      const indiceComentario =
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_COMENTARIO,
+            "Comentarios",
+            "Comentario adicional"
+          ]
         );
 
 
       /*
-       * Compatibilidad con el Excel anterior.
+       * RUT.
+       *
+       * Primero buscamos una columna llamada RUT.
+       */
+
+      let indiceRut =
+        encontrarColumna(
+          cabeceras,
+          [
+            "RUT",
+            "R.U.T.",
+            "Rut postulante"
+          ]
+        );
+
+
+      /*
+       * Si no existe una columna RUT,
+       * usamos la columna que viene
+       * inmediatamente después de Postulante.
+       *
+       * Esto mantiene compatibilidad
+       * con tu Excel actual.
        */
 
       if (
         indiceRut < 0
       ) {
 
-        indiceRut = 6;
+        indiceRut =
+          indiceNombre + 1;
 
       }
 
 
-      const postulantes = [];
+      const postulantes =
+        [];
 
 
       for (
@@ -1527,24 +1815,29 @@
           );
 
 
+        /*
+         * Filas sin nombre no son postulantes.
+         */
+
         if (
           !nombreOriginal
         ) {
 
           continue;
-
         }
 
 
         const rutOriginal =
-          textoSeguro(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceRut
-              })
-            ]?.v
-          );
+          indiceRut >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceRut
+                  })
+                ]?.v
+              )
+            : "";
 
 
         const rut =
@@ -1559,7 +1852,11 @@
           );
 
 
-        const persona =
+        /*
+         * BUSCAMOS EN REGISTRO
+         */
+
+        const personaRegistro =
           buscarPersona(
             indices,
             rut,
@@ -1567,17 +1864,15 @@
           );
 
 
-        const evaluacion =
-          persona
-            ? persona.evaluacion
+        const notaRegistro =
+          personaRegistro
+            ? personaRegistro.evaluacion
             : null;
 
 
-        const informacion =
-          persona
-            ? persona.informacion
-            : "";
-
+        /*
+         * NOTA DEL CURSO
+         */
 
         const nota =
           indiceNota >= 0
@@ -1591,6 +1886,10 @@
               )
             : null;
 
+
+        /*
+         * CRÉDITOS
+         */
 
         const creditos =
           indiceCreditos >= 0
@@ -1606,12 +1905,10 @@
 
 
         /*
-         * NUEVO:
-         * Índice de aprobación directamente
-         * desde el Excel que se sube.
+         * ÍNDICE DE APROBACIÓN
          */
 
-        const indiceAprobacionValor =
+        const indiceAprobacion =
           indiceAprobacion >= 0
             ? parseNumero(
                 hoja[
@@ -1624,6 +1921,64 @@
             : null;
 
 
+        /*
+         * COMENTARIO ORIGINAL DEL EXCEL
+         */
+
+        const comentario =
+          indiceComentario >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceComentario
+                  })
+                ]?.v
+              )
+            : "";
+
+
+        /*
+         * TIPO:
+         *
+         * Auxiliar de control
+         * o
+         * Ayudante
+         */
+
+        const tipo =
+          determinarTipo(
+            comentario
+          );
+
+
+        /*
+         * GUARDAMOS TODAS LAS COLUMNAS
+         * ORIGINALES.
+         */
+
+        const valoresOriginales =
+          [];
+
+
+        for (
+          let columna = rango.s.c;
+          columna <= rango.e.c;
+          columna++
+        ) {
+
+          valoresOriginales.push(
+            hoja[
+              XLSX.utils.encode_cell({
+                r: fila,
+                c: columna
+              })
+            ]?.v ?? ""
+          );
+
+        }
+
+
         postulantes.push({
 
           nombre:
@@ -1634,14 +1989,17 @@
 
           nota,
 
-          evaluacion,
+          notaRegistro,
 
-          indiceAprobacion:
-            indiceAprobacionValor,
+          indiceAprobacion,
 
           creditos,
 
-          informacion
+          comentario,
+
+          tipo,
+
+          valoresOriginales
 
         });
 
@@ -1649,45 +2007,56 @@
 
 
       /*
-       * Orden:
+       * =====================================================
+       * ORDEN PRINCIPAL
+       * =====================================================
        *
-       * Evaluación 4
-       * Evaluación 3
-       * Evaluación 2
-       * Evaluación 1
-       * Sin evaluación
+       * 4
+       * 3
+       * 2
+       * 1
+       * sin registro
        *
-       * Dentro de cada evaluación:
-       * mayor nota primero.
+       * Dentro de cada grupo:
+       *
+       * Nota Curso mayor → menor
        */
 
       postulantes.sort(
         (a, b) => {
 
-          const evaluacionA =
-            a.evaluacion === null
+          const registroA =
+            a.notaRegistro === null
               ? -1
-              : a.evaluacion;
+              : a.notaRegistro;
 
 
-          const evaluacionB =
-            b.evaluacion === null
+          const registroB =
+            b.notaRegistro === null
               ? -1
-              : b.evaluacion;
+              : b.notaRegistro;
 
+
+          /*
+           * Primero Nota Registro.
+           */
 
           if (
-            evaluacionA !==
-            evaluacionB
+            registroA !==
+            registroB
           ) {
 
             return (
-              evaluacionB -
-              evaluacionA
+              registroB -
+              registroA
             );
 
           }
 
+
+          /*
+           * Luego Nota Curso.
+           */
 
           const notaA =
             a.nota === null
@@ -1715,6 +2084,8 @@
         nombre:
           nombreHoja,
 
+        cabeceras,
+
         postulantes
 
       };
@@ -1733,7 +2104,6 @@
       ) {
 
         return;
-
       }
 
 
@@ -1747,22 +2117,30 @@
 
 
       mostrarEstado(
-        "Cargando registro de evaluaciones…",
+        "Cargando registro de ayudantes…",
         "loading"
       );
 
 
       try {
 
+        /*
+         * CARGAMOS EL REGISTRO
+         */
+
         const registro =
           await cargarRegistro();
 
 
         mostrarEstado(
-          "Procesando cursos…",
+          "Procesando postulaciones…",
           "loading"
         );
 
+
+        /*
+         * LEEMOS EXCEL
+         */
 
         const datos =
           await archivoSeleccionado
@@ -1787,8 +2165,13 @@
           );
 
 
-        cursos = [];
+        cursos =
+          [];
 
+
+        /*
+         * PROCESAMOS CADA HOJA
+         */
 
         for (
           const nombreHoja
@@ -1828,7 +2211,7 @@
         ) {
 
           throw new Error(
-            'No se encontraron cursos con una columna "Postulante".'
+            'No se encontraron hojas con una columna "Postulante".'
           );
 
         }
@@ -1847,13 +2230,16 @@
 
 
         mostrarEstado(
-          `Se cargaron ${cursos.length} cursos correctamente.`,
+          "Postulaciones procesadas correctamente.",
           "success"
         );
 
       }
 
-      catch (error) {
+
+      catch (
+        error
+      ) {
 
         console.error(
           error
@@ -1873,6 +2259,7 @@
 
       }
 
+
       finally {
 
         procesarButton.disabled =
@@ -1891,11 +2278,65 @@
       valor
     ) {
 
-      return textoSeguro(valor)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      return textoSeguro(
+        valor
+      )
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        );
+
+    }
+
+
+    /* =========================================================
+       FORMATEAR VALOR
+       ========================================================= */
+
+    function formatearValor(
+      valor
+    ) {
+
+      if (
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+      ) {
+
+        return "—";
+      }
+
+
+      if (
+        valor instanceof Date
+      ) {
+
+        return valor.toLocaleDateString(
+          "es-CL"
+        );
+
+      }
+
+
+      return escaparHTML(
+        valor
+      );
 
     }
 
@@ -1924,7 +2365,10 @@
 
 
       cursos.forEach(
-        (curso, indice) => {
+        (
+          curso,
+          indice
+        ) => {
 
           const boton =
             document.createElement(
@@ -1955,6 +2399,7 @@
               cursoActivo =
                 indice;
 
+
               renderCursos();
 
             }
@@ -1983,7 +2428,9 @@
         ];
 
 
-      if (!curso) {
+      if (
+        !curso
+      ) {
 
         courseSection.innerHTML =
           `
@@ -1992,13 +2439,32 @@
             </div>
           `;
 
+
         return;
 
       }
 
 
-      const total =
-        curso.postulantes.length;
+      /*
+       * SEPARAMOS EN DOS GRUPOS.
+       *
+       * SIN RESUMEN.
+       */
+
+      const auxiliares =
+        curso.postulantes.filter(
+          persona =>
+            persona.tipo ===
+            "Auxiliares de control"
+        );
+
+
+      const ayudantes =
+        curso.postulantes.filter(
+          persona =>
+            persona.tipo ===
+            "Ayudantes"
+        );
 
 
       courseSection.innerHTML =
@@ -2009,82 +2475,213 @@
             <div>
 
               <h3 class="course-name">
+
                 ${escaparHTML(
                   curso.nombre
                 )}
-              </h3>
 
-              <p class="course-info">
-                ${total}
-                ${
-                  total === 1
-                    ? "postulante"
-                    : "postulantes"
-                }
-              </p>
+              </h3>
 
             </div>
 
           </div>
 
 
-          <div class="table-wrapper">
+          <!-- ===============================================
+               AUXILIARES DE CONTROL
+               =============================================== -->
 
-            <table class="selection-table">
+          <section
+            class="candidate-group"
+          >
 
-              <thead>
+            <h4 class="candidate-group-title">
+              Auxiliares de control
+            </h4>
 
-                <tr>
 
-                  <th class="position">
-                    #
-                  </th>
+            ${
+              auxiliares.length
+                ? `
 
-                  <th>
-                    Postulante
-                  </th>
+                  <div class="table-wrapper">
 
-                  <th>
-                    RUT
-                  </th>
+                    <table class="selection-table">
 
-                  <th>
-                    Nota curso
-                  </th>
+                      <thead>
 
-                  <th>
-                    Evaluación
-                  </th>
+                        ${renderEncabezados(
+                          curso.cabeceras
+                        )}
 
-                  <th>
-                    Índice Aprob.
-                  </th>
+                      </thead>
 
-                  <th>
-                    Créditos
-                  </th>
 
-                  <th>
-                    Información
-                  </th>
+                      <tbody>
 
-                </tr>
+                        ${renderFilas(
+                          auxiliares,
+                          curso.cabeceras
+                        )}
 
-              </thead>
+                      </tbody>
 
-              <tbody>
+                    </table>
 
-                ${renderFilas(
-                  curso.postulantes
-                )}
+                  </div>
 
-              </tbody>
+                `
+                : `
 
-            </table>
+                  <div class="no-results">
 
-          </div>
+                    No hay postulantes para
+                    Auxiliares de control.
+
+                  </div>
+
+                `
+            }
+
+          </section>
+
+
+          <!-- ===============================================
+               AYUDANTES
+               =============================================== -->
+
+          <section
+            class="candidate-group"
+          >
+
+            <h4 class="candidate-group-title">
+              Ayudantes
+            </h4>
+
+
+            ${
+              ayudantes.length
+                ? `
+
+                  <div class="table-wrapper">
+
+                    <table class="selection-table">
+
+                      <thead>
+
+                        ${renderEncabezados(
+                          curso.cabeceras
+                        )}
+
+                      </thead>
+
+
+                      <tbody>
+
+                        ${renderFilas(
+                          ayudantes,
+                          curso.cabeceras
+                        )}
+
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+                `
+                : `
+
+                  <div class="no-results">
+
+                    No hay postulantes para
+                    Ayudantes.
+
+                  </div>
+
+                `
+            }
+
+          </section>
 
         `;
+
+    }
+
+
+    /* =========================================================
+       ENCABEZADOS
+       ========================================================= */
+
+    function renderEncabezados(
+      cabeceras
+    ) {
+
+      let html =
+        "<tr>";
+
+
+      /*
+       * PRIMERA COLUMNA:
+       * posición.
+       */
+
+      html +=
+        `
+          <th class="position">
+            #
+          </th>
+        `;
+
+
+      /*
+       * NUEVA COLUMNA:
+       *
+       * Nota Registro
+       *
+       * queda inmediatamente
+       * a la izquierda de Postulante.
+       */
+
+      html +=
+        `
+          <th>
+            Nota Registro
+          </th>
+        `;
+
+
+      /*
+       * DESPUÉS MOSTRAMOS TODAS
+       * LAS COLUMNAS ORIGINALES.
+       */
+
+      cabeceras.forEach(
+        cabecera => {
+
+          /*
+           * No modificamos los nombres
+           * originales.
+           */
+
+          html +=
+            `
+              <th>
+                ${escaparHTML(
+                  cabecera
+                )}
+              </th>
+            `;
+
+        }
+      );
+
+
+      html +=
+        "</tr>";
+
+
+      return html;
 
     }
 
@@ -2094,80 +2691,51 @@
        ========================================================= */
 
     function renderFilas(
-      postulantes
+      postulantes,
+      cabeceras
     ) {
 
       return postulantes
+
         .map(
-          (persona, indice) => {
+          (
+            persona,
+            indice
+          ) => {
 
-            /* -------------------------
-               EVALUACIÓN
-               ------------------------- */
 
-            let claseEvaluacion =
+            /* ================================================
+               NOTA REGISTRO
+               ================================================ */
+
+            let claseRegistro =
               "evaluation-none";
 
-            let textoEvaluacion =
+
+            let textoRegistro =
               "—";
 
 
             if (
-              persona.evaluacion !== null
+              persona.notaRegistro !==
+              null
             ) {
 
-              textoEvaluacion =
-                persona.evaluacion;
+              textoRegistro =
+                persona.notaRegistro;
 
 
-              claseEvaluacion =
-                persona.evaluacion >= 3
+              claseRegistro =
+                persona.notaRegistro >= 3
                   ? "evaluation-good"
                   : "evaluation-bad";
 
             }
 
 
-            /* -------------------------
-               ÍNDICE DE APROBACIÓN
-               ------------------------- */
-
-            let claseAprobacion =
-              "approval-none";
-
-            let textoAprobacion =
-              "—";
-
-
-            if (
-              persona.indiceAprobacion !== null
-            ) {
-
-              textoAprobacion =
-                persona.indiceAprobacion
-                  .toFixed(2)
-                  .replace(
-                    ".",
-                    ","
-                  );
-
-
-              /*
-               * 0,85 o superior = AZUL
-               * menor a 0,85 = ROJO
-               */
-
-              claseAprobacion =
-                persona.indiceAprobacion >= 0.85
-                  ? "approval-good"
-                  : "approval-bad";
-
-            }
-
-
-            /* -------------------------
+            /* ================================================
                CRÉDITOS
-               ------------------------- */
+               ================================================ */
 
             const pocosCreditos =
               persona.creditos !== null &&
@@ -2190,141 +2758,285 @@
                 : "";
 
 
-            /* -------------------------
-               NOTA
-               ------------------------- */
+            /* ================================================
+               FILA
+               ================================================ */
 
-            const nota =
-              persona.nota === null
-                ? "—"
-                : String(
-                    persona.nota
-                  ).replace(
-                    ".",
-                    ","
+            let html =
+              `
+
+                <tr>
+
+                  <td class="position">
+                    ${indice + 1}
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="
+                        evaluation
+                        ${claseRegistro}
+                      "
+                    >
+
+                      ${textoRegistro}
+
+                    </span>
+
+                  </td>
+
+              `;
+
+
+            /*
+             * TODAS LAS COLUMNAS ORIGINALES.
+             */
+
+            cabeceras.forEach(
+              (
+                cabecera,
+                columna
+              ) => {
+
+
+                const valor =
+                  persona
+                    .valoresOriginales[
+                      columna
+                    ];
+
+
+                const nombreColumna =
+                  normalizarTexto(
+                    cabecera
                   );
 
 
-            /* -------------------------
-               RUT
-               ------------------------- */
+                /* ==========================================
+                   POSTULANTE
+                   ========================================== */
 
-            const rut =
-              persona.rut
-                ? escaparHTML(
-                    persona.rut
+                if (
+                  nombreColumna ===
+                  normalizarTexto(
+                    COLUMNA_NOMBRE
                   )
-                : "—";
+                ) {
+
+                  html +=
+                    `
+
+                      <td class="postulante">
+
+                        ${formatearValor(
+                          valor
+                        )}
+
+                      </td>
+
+                    `;
 
 
-            /* -------------------------
-               INFORMACIÓN
-               ------------------------- */
+                  return;
 
-            const informacion =
-              persona.informacion
-                ? `
-                  <div class="comment-box">
-
-                    <span class="comment-icon">
-                      💬
-                    </span>
-
-                    <span class="comment-text">
-                      ${escaparHTML(
-                        persona.informacion
-                      )}
-                    </span>
-
-                  </div>
-                `
-                : `
-                  <span class="comment-empty">
-                    Sin información
-                  </span>
-                `;
+                }
 
 
-            return `
+                /* ==========================================
+                   CRÉDITOS
+                   ========================================== */
 
-              <tr>
+                if (
+                  nombreColumna ===
+                  normalizarTexto(
+                    COLUMNA_CREDITOS
+                  )
+                ) {
 
-                <td class="position">
-                  ${indice + 1}
-                </td>
+                  html +=
+                    `
 
+                      <td
+                        class="${claseCreditos}"
+                      >
 
-                <td class="postulante">
-                  ${escaparHTML(
-                    persona.nombre
-                  )}
-                </td>
+                        ${formatearValor(
+                          valor
+                        )}
 
+                        ${avisoCreditos}
 
-                <td>
-                  ${rut}
-                </td>
+                      </td>
 
-
-                <td>
-                  ${nota}
-                </td>
-
-
-                <td>
-
-                  <span
-                    class="evaluation ${claseEvaluacion}"
-                  >
-                    ${textoEvaluacion}
-                  </span>
-
-                </td>
+                    `;
 
 
-                <td>
+                  return;
 
-                  <span
-                    class="approval-index ${claseAprobacion}"
-                  >
-                    ${textoAprobacion}
-                  </span>
-
-                </td>
+                }
 
 
-                <td class="${claseCreditos}">
+                /* ==========================================
+                   COMENTARIO
+                   ========================================== */
 
-                  ${
-                    persona.creditos === null
-                      ? "—"
-                      : persona.creditos
+                if (
+                  nombreColumna ===
+                  normalizarTexto(
+                    COLUMNA_COMENTARIO
+                  )
+                ) {
+
+                  html +=
+                    `
+
+                      <td class="comment-cell">
+
+                        ${
+                          valor
+                            ? `
+                              <div
+                                class="comment-text"
+                              >
+                                ${formatearValor(
+                                  valor
+                                )}
+                              </div>
+                            `
+                            : `
+                              <span
+                                class="comment-empty"
+                              >
+                                —
+                              </span>
+                            `
+                        }
+
+                      </td>
+
+                    `;
+
+
+                  return;
+
+                }
+
+
+                /* ==========================================
+                   ÍNDICE DE APROBACIÓN
+                   ========================================== */
+
+                if (
+                  nombreColumna ===
+                  normalizarTexto(
+                    COLUMNA_INDICE
+                  )
+                ) {
+
+                  const valorNumerico =
+                    persona.indiceAprobacion;
+
+
+                  let texto =
+                    formatearValor(
+                      valor
+                    );
+
+
+                  let clase =
+                    "approval-none";
+
+
+                  if (
+                    valorNumerico !== null
+                  ) {
+
+                    texto =
+                      valorNumerico
+                        .toFixed(2)
+                        .replace(
+                          ".",
+                          ","
+                        );
+
+
+                    clase =
+                      valorNumerico >= 0.85
+                        ? "approval-good"
+                        : "approval-bad";
+
                   }
 
-                  ${avisoCreditos}
 
-                </td>
+                  html +=
+                    `
+
+                      <td>
+
+                        <span
+                          class="
+                            approval-index
+                            ${clase}
+                          "
+                        >
+
+                          ${texto}
+
+                        </span>
+
+                      </td>
+
+                    `;
 
 
-                <td class="comment-cell">
+                  return;
 
-                  ${informacion}
+                }
 
-                </td>
 
-              </tr>
+                /* ==========================================
+                   RESTO DE LAS COLUMNAS
+                   ========================================== */
 
-            `;
+                html +=
+                  `
+
+                    <td>
+
+                      ${formatearValor(
+                        valor
+                      )}
+
+                    </td>
+
+                  `;
+
+              }
+            );
+
+
+            html +=
+              `
+
+                </tr>
+
+              `;
+
+
+            return html;
 
           }
         )
+
         .join("");
 
     }
 
 
     /* =========================================================
-       EVENTOS
+       EVENTO: SELECCIONAR ARCHIVO
        ========================================================= */
 
     archivoInput.addEventListener(
@@ -2348,12 +3060,15 @@
           nombreArchivo.textContent =
             "";
 
+
           procesarButton.disabled =
             true;
+
 
           mostrarEstado(
             "Selecciona un archivo Excel para comenzar."
           );
+
 
           return;
 
@@ -2376,10 +3091,18 @@
     );
 
 
+    /* =========================================================
+       EVENTO: PROCESAR
+       ========================================================= */
+
     procesarButton.addEventListener(
       "click",
       procesarArchivo
     );
 
-  </script></body>
+
+  </script>
+
+</body>
+
 </html>
