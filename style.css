@@ -232,10 +232,10 @@ body.home .container {
 /* Grid de acciones (home) */
 .buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
   width: 100%;
-  max-width: 760px;
+  max-width: 900px;
 }
 
 .buttons a { display: block; }
@@ -474,4 +474,3 @@ button.main-action:active { transform: translateY(1px); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
    }
-   
