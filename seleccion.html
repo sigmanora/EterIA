@@ -1,31 +1,13 @@
-<!DOCTYPE html>
-<html lang="es">
-
+<!DOCTYPE html><html lang="es">
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <title>EterIA — Selección de ayudantes</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-  <script
-    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-  ></script>
-
-
-  <style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>EterIA — Selección de ayudantes</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>  <style>
+    /* =========================================================
+       ETERIA — SELECCIÓN
+       ========================================================= */
 
     .selection-card {
-      width: min(1400px, 100%);
+      width: min(1200px, 100%);
       max-width: none !important;
     }
 
@@ -48,6 +30,11 @@
       padding: 24px;
       background: var(--bg-soft);
       text-align: center;
+      transition: 0.2s ease;
+    }
+
+    .file-input-wrapper:hover {
+      border-color: var(--accent);
     }
 
     .file-input-wrapper input[type="file"] {
@@ -79,23 +66,32 @@
       background: var(--bg-soft);
       color: var(--ink-soft);
       font-size: 13px;
+      line-height: 1.5;
     }
 
     .status.loading {
+      border-color: rgba(240, 185, 77, 0.35);
       color: var(--gold);
     }
 
     .status.success {
+      border-color: rgba(80, 200, 120, 0.35);
       color: #8ee6a8;
     }
 
     .status.error {
+      border-color: rgba(217, 70, 63, 0.45);
       color: #ff8b84;
     }
 
     .hidden {
       display: none !important;
     }
+
+
+    /* =========================================================
+       CURSOS
+       ========================================================= */
 
     #resultados {
       margin-top: 38px;
@@ -105,6 +101,7 @@
       margin: 0 0 6px;
       font-family: var(--font-display);
       font-size: 23px;
+      font-weight: 600;
       color: var(--ink);
     }
 
@@ -112,6 +109,7 @@
       margin: 0 0 20px;
       color: var(--ink-soft);
       font-size: 13px;
+      line-height: 1.5;
     }
 
     .course-tabs {
@@ -119,6 +117,7 @@
       gap: 8px;
       overflow-x: auto;
       padding: 5px 0 14px;
+      scrollbar-width: thin;
     }
 
     .course-tab {
@@ -131,7 +130,13 @@
       font-family: var(--font-mono);
       font-size: 11px;
       cursor: pointer;
+      transition: 0.15s ease;
       white-space: nowrap;
+    }
+
+    .course-tab:hover {
+      border-color: var(--accent);
+      color: var(--ink);
     }
 
     .course-tab.active {
@@ -140,30 +145,42 @@
       color: var(--accent);
     }
 
+
+    /* =========================================================
+       ENCABEZADO DEL CURSO
+       ========================================================= */
+
     .course-section {
       margin-top: 12px;
     }
 
     .course-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
       margin: 8px 0 18px;
+      flex-wrap: wrap;
     }
 
     .course-name {
       margin: 0;
       font-family: var(--font-display);
       font-size: 25px;
+      font-weight: 600;
       color: var(--ink);
     }
 
-    .group-title {
-      margin-top: 35px;
-      margin-bottom: 12px;
-      padding-bottom: 9px;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--font-display);
-      font-size: 19px;
-      color: var(--ink);
+    .course-info {
+      margin: 5px 0 0;
+      color: var(--ink-soft);
+      font-size: 12px;
     }
+
+
+    /* =========================================================
+       TABLA
+       ========================================================= */
 
     .table-wrapper {
       width: 100%;
@@ -174,10 +191,10 @@
     }
 
     .selection-table {
-      width: max-content;
-      min-width: 100%;
+      width: 100%;
+      min-width: 1280px;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 12.5px;
     }
 
     .selection-table th {
@@ -189,6 +206,7 @@
       font-family: var(--font-mono);
       font-size: 10px;
       font-weight: 500;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       white-space: nowrap;
     }
@@ -200,22 +218,32 @@
       vertical-align: middle;
     }
 
+    .selection-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
     .selection-table tbody tr:hover {
       background: var(--surface-hover);
     }
 
     .position {
-      width: 40px;
+      width: 45px;
       text-align: center;
       color: var(--ink-faint) !important;
       font-family: var(--font-mono);
+      font-size: 11px;
     }
 
     .postulante {
       color: var(--ink) !important;
-      font-weight: 600;
-      min-width: 190px;
+      font-weight: 500;
+      min-width: 170px;
     }
+
+
+    /* =========================================================
+       EVALUACIÓN
+       ========================================================= */
 
     .evaluation {
       display: inline-flex;
@@ -248,56 +276,10 @@
       border: 1px solid var(--border);
     }
 
-    .type-badge {
-      display: inline-flex;
-      padding: 6px 9px;
-      border-radius: 7px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      white-space: nowrap;
-    }
 
-    .type-aux {
-      color: #c69cff;
-      background: rgba(156, 92, 255, 0.12);
-      border: 1px solid rgba(156, 92, 255, 0.25);
-    }
-
-    .type-ayudante {
-      color: #70b7ff;
-      background: rgba(65, 145, 230, 0.13);
-      border: 1px solid rgba(65, 145, 230, 0.25);
-    }
-
-    .credits-warning {
-      color: #ff8b84 !important;
-      font-weight: 700;
-    }
-
-    .credit-warning {
-      display: inline-block;
-      margin-left: 7px;
-      padding: 3px 6px;
-      border-radius: 5px;
-      background: rgba(217, 70, 63, 0.12);
-      color: #ff8b84;
-      border: 1px solid rgba(217, 70, 63, 0.22);
-      font-family: var(--font-mono);
-      font-size: 8px;
-      text-transform: uppercase;
-    }
-
-    .comment-cell {
-      min-width: 320px;
-      max-width: 500px;
-      white-space: normal;
-    }
-
-    .comment-text {
-      white-space: normal;
-      overflow-wrap: anywhere;
-      line-height: 1.45;
-    }
+    /* =========================================================
+       ÍNDICE DE APROBACIÓN
+       ========================================================= */
 
     .approval-index {
       display: inline-flex;
@@ -330,2580 +312,2342 @@
       border: 1px solid var(--border);
     }
 
-    .no-results {
-      padding: 30px;
-      text-align: center;
-      color: var(--ink-faint);
+
+    /* =========================================================
+       TIPO DE POSTULACIÓN
+       ========================================================= */
+
+    .type-badge {
+      display: inline-flex;
+      min-width: 32px;
+      height: 28px;
+      padding: 0 9px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
 
-  </style>
+    .type-ayudante {
+      color: #c9a6ff;
+      background: rgba(155, 92, 230, 0.13);
+      border: 1px solid rgba(155, 92, 230, 0.28);
+    }
 
-</head>
+    .type-aux-control {
+      color: #ffbf6b;
+      background: rgba(230, 145, 30, 0.14);
+      border: 1px solid rgba(230, 145, 30, 0.3);
+    }
+
+    .type-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .type-filter {
+      flex: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink-soft);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .type-filter:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+    }
+
+    .type-filter.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
 
 
-<body class="seleccion">
+    /* =========================================================
+       CRÉDITOS
+       ========================================================= */
+
+    .credits-warning {
+      color: #ff8b84 !important;
+      font-weight: 600;
+    }
+
+    .credit-warning {
+      display: inline-block;
+      margin-left: 7px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: rgba(217, 70, 63, 0.12);
+      color: #ff8b84;
+      border: 1px solid rgba(217, 70, 63, 0.22);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
 
 
-<header class="top-bar">
+    /* =========================================================
+       INFORMACIÓN / COMENTARIOS
+       ========================================================= */
 
-  <div class="top-inner">
+    .comment-cell {
+      min-width: 320px;
+      max-width: 480px;
+    }
 
-    <a
-      href="index.html"
-      class="logo"
+    .comment-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+
+    .comment-icon {
+      flex: none;
+      font-size: 13px;
+      margin-top: 1px;
+    }
+
+    .comment-text {
+      color: var(--ink-soft);
+      font-size: 11.5px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .comment-empty {
+      color: var(--ink-faint);
+      font-style: italic;
+      font-size: 11px;
+    }
+
+
+    /* =========================================================
+       SIN RESULTADOS
+       ========================================================= */
+
+    .no-results {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--ink-faint);
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed !important;
+      transform: none !important;
+    }
+
+
+    /* =========================================================
+       MÓVIL
+       ========================================================= */
+
+    @media (max-width: 720px) {
+
+      .selection-card {
+        padding: 28px 20px !important;
+      }
+
+      .selection-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .process-button {
+        width: 100%;
+      }
+
+      .course-tabs {
+        margin-right: -5px;
+      }
+
+    }
+
+  </style></head><body class="seleccion">  <!-- =========================================================
+       HEADER
+       ========================================================= -->  <header class="top-bar"><div class="top-inner">
+
+  <a href="index.html" class="logo">
+    COORDINACIÓN &amp; CO.
+  </a>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Buscar"
     >
-      COORDINACIÓN &amp; CO.
-    </a>
+    <span class="icon">🔍</span>
+  </div>
 
-    <div class="search-box">
+  <div class="right-box">
+    EterIA
+  </div>
+
+</div>
+
+  </header>  <!-- =========================================================
+       CONTENIDO
+       ========================================================= -->  <main class="container"><div class="card wide selection-card">
+
+  <span class="badge">
+    Selección
+  </span>
+
+  <h1 style="
+    margin: 0 0 18px;
+    font-family: var(--font-display);
+    font-size: 42px;
+    line-height: 1.05;
+  ">
+    Selección de ayudantes
+  </h1>
+
+  <p class="subtitle">
+    Sube el archivo Excel con las postulaciones para revisar
+    los candidatos organizados por curso.
+  </p>
+
+
+  <!-- =====================================================
+       ARCHIVO
+       ===================================================== -->
+
+  <div class="upload-box">
+
+    <div class="file-input-wrapper">
 
       <input
-        type="text"
-        placeholder="Buscar"
+        type="file"
+        id="archivo"
+        accept=".xlsx,.xls"
       >
 
-      <span class="icon">🔍</span>
+      <div
+        id="nombre-archivo"
+        class="file-name"
+      ></div>
 
-    </div>
-
-    <div class="right-box">
-      EterIA
     </div>
 
   </div>
 
-</header>
 
+  <!-- =====================================================
+       BOTÓN
+       ===================================================== -->
 
+  <div class="selection-actions">
 
-<main class="container">
-
-  <div class="card wide selection-card">
-
-    <span class="badge">
-      Selección
-    </span>
-
-
-    <h1
-      style="
-        margin: 0 0 18px;
-        font-family: var(--font-display);
-        font-size: 42px;
-        line-height: 1.05;
-      "
+    <button
+      id="procesar"
+      class="main-action process-button"
+      type="button"
+      disabled
     >
-      Selección de ayudantes
-    </h1>
+      Mostrar postulantes
+    </button>
+
+  </div>
 
 
-    <p class="subtitle">
-      Sube el archivo Excel con las postulaciones para revisar
-      los candidatos organizados por curso.
+  <!-- =====================================================
+       ESTADO
+       ===================================================== -->
+
+  <div
+    id="estado"
+    class="status"
+  >
+    Selecciona un archivo Excel para comenzar.
+  </div>
+
+
+  <!-- =====================================================
+       RESULTADOS
+       ===================================================== -->
+
+  <section
+    id="resultados"
+    class="hidden"
+  >
+
+    <h2 class="courses-title">
+      Cursos
+    </h2>
+
+    <p class="courses-description">
+      Selecciona un curso para revisar sus postulantes,
+      evaluación, índice de aprobación, créditos e información.
     </p>
 
 
-    <div class="upload-box">
-
-      <div class="file-input-wrapper">
-
-        <input
-          type="file"
-          id="archivo"
-          accept=".xlsx,.xls"
-        >
-
-        <div
-          id="nombre-archivo"
-          class="file-name"
-        ></div>
-
-      </div>
-
-    </div>
-
-
-    <div class="selection-actions">
-
-      <button
-        id="procesar"
-        class="main-action process-button"
-        type="button"
-        disabled
-      >
-        Mostrar postulantes
-      </button>
-
-    </div>
-
+    <!-- PESTAÑAS -->
 
     <div
-      id="estado"
-      class="status"
-    >
-      Selecciona un archivo Excel para comenzar.
-    </div>
+      id="course-tabs"
+      class="course-tabs"
+    ></div>
 
 
-    <section
-      id="resultados"
-      class="hidden"
-    >
+    <!-- CURSO ACTIVO -->
 
-      <h2 class="courses-title">
-        Cursos
-      </h2>
+    <div
+      id="course-section"
+      class="course-section"
+    ></div>
 
-      <p class="courses-description">
-        Los postulantes se ordenan por nota del registro y luego por
-        nota del curso.
-      </p>
+  </section>
 
-      <div
-        id="course-tabs"
-        class="course-tabs"
-      ></div>
+</div>
 
-      <div
-        id="course-section"
-        class="course-section"
-      ></div>
+  </main>  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->  <script>
 
-    </section>
+    /* =========================================================
+       CONFIGURACIÓN
+       ========================================================= */
 
-  </div>
+    const AYUDANTES_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
 
-</main>
 
+    const COLUMNA_NOMBRE =
+      "Postulante";
 
+    const COLUMNA_NOTA =
+      "Nota Curso (mínimo 5,0)";
 
-<script>
+    const COLUMNA_CREDITOS =
+      "Créditos aprobados";
 
+    const COLUMNA_INDICE_APROB =
+      "Índice Aprob.";
 
-/* ============================================================
-   CONFIGURACIÓN
-   ============================================================ */
+    const COLUMNA_INFORMACION =
+      "INFORMACIÓN";
 
+    const COLUMNA_CARGO =
+      "Cargo";
 
-const AYUDANTES_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQiEl3Ji1OCzdYNzmO7SJ5bTW8wKaIz16yOsmsmRmxCnjmrqF9gTCglB9dYfA91uPtqrmK8y2iVTYD5/pub?gid=0&single=true&output=csv";
-
-
-const COLUMNA_NOMBRE =
-  "Postulante";
-
-
-const COLUMNA_CARGO =
-  "Cargo";
-
-
-const COLUMNA_COMENTARIO =
-  "Comentario";
-
-
-const COLUMNA_NOTA =
-  "Nota Curso (mínimo 5,0)";
-
-
-const COLUMNA_CREDITOS =
-  "Créditos aprobados";
-
-
-const COLUMNA_INDICE =
-  "Índice Aprob.";
-
-
-/* ============================================================
-   ELEMENTOS
-   ============================================================ */
-
-
-const archivoInput =
-  document.getElementById(
-    "archivo"
-  );
-
-
-const procesarButton =
-  document.getElementById(
-    "procesar"
-  );
-
-
-const nombreArchivo =
-  document.getElementById(
-    "nombre-archivo"
-  );
-
-
-const estado =
-  document.getElementById(
-    "estado"
-  );
-
-
-const resultados =
-  document.getElementById(
-    "resultados"
-  );
-
-
-const courseTabs =
-  document.getElementById(
-    "course-tabs"
-  );
-
-
-const courseSection =
-  document.getElementById(
-    "course-section"
-  );
-
-
-let archivoSeleccionado =
-  null;
-
-
-let registroAyudantes =
-  null;
-
-
-let cursos =
-  [];
-
-
-let cursoActivo =
-  0;
-
-
-/* ============================================================
-   UTILIDADES
-   ============================================================ */
-
-
-function textoSeguro(valor) {
-
-  if (
-    valor === null ||
-    valor === undefined
-  ) {
-
-    return "";
-
-  }
-
-  return String(valor).trim();
-
-}
-
-
-function normalizarTexto(
-  valor = ""
-) {
-
-  return textoSeguro(valor)
-
-    .replace(
-      /"/g,
-      ""
-    )
-
-    .normalize("NFD")
-
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
-    )
-
-    .toLowerCase()
-
-    .replace(
-      /\s+/g,
-      " "
-    )
-
-    .trim();
-
-}
-
-
-function normalizarNombre(
-  valor = ""
-) {
-
-  const limpio =
-    textoSeguro(valor);
-
-
-  if (
-    limpio.includes(",")
-  ) {
-
-    const partes =
-      limpio.split(",");
-
-
-    const apellidos =
-      partes.shift().trim();
-
-
-    const nombres =
-      partes.join(",").trim();
-
-
-    return normalizarTexto(
-      `${nombres} ${apellidos}`
-    );
-
-  }
-
-
-  return normalizarTexto(
-    limpio
-  );
-
-}
-
-
-function normalizarRut(
-  valor = ""
-) {
-
-  return textoSeguro(valor)
-    .toUpperCase()
-    .replace(
-      /[\s.\-]/g,
-      ""
-    );
-
-}
-
-
-function parseNumero(
-  valor
-) {
-
-  if (
-    typeof valor === "number"
-  ) {
-
-    return Number.isFinite(valor)
-      ? valor
-      : null;
-
-  }
-
-
-  let texto =
-    textoSeguro(valor);
-
-
-  if (!texto) {
-
-    return null;
-
-  }
-
-
-  texto =
-    texto
-      .replace(
-        /\s/g,
-        ""
-      )
-      .replace(
-        "%",
-        ""
-      );
-
-
-  if (
-    texto.includes(",")
-  ) {
-
-    texto =
-      texto
-        .replace(
-          /\./g,
-          ""
-        )
-        .replace(
-          ",",
-          "."
-        );
-
-  }
-
-
-  const numero =
-    Number(texto);
-
-
-  return Number.isFinite(numero)
-    ? numero
-    : null;
-
-}
-
-
-function evaluacionNumero(
-  valor
-) {
-
-  const numero =
-    parseInt(
-      textoSeguro(valor),
-      10
-    );
-
-
-  if (
-    numero >= 1 &&
-    numero <= 4
-  ) {
-
-    return numero;
-
-  }
-
-
-  return null;
-
-}
-
-
-function mostrarEstado(
-  mensaje,
-  tipo = ""
-) {
-
-  estado.textContent =
-    mensaje;
-
-
-  estado.className =
-    `status ${tipo}`.trim();
-
-}
-
-
-/* ============================================================
-   BUSCAR COLUMNA
-   ============================================================ */
-
-
-function encontrarColumna(
-  cabeceras,
-  nombres
-) {
-
-  for (
-    const nombre
-    of nombres
-  ) {
-
-    const buscado =
-      normalizarTexto(
-        nombre
-      );
-
-
-    const indice =
-      cabeceras.findIndex(
-        cabecera =>
-          normalizarTexto(
-            cabecera
-          ) === buscado
-      );
-
-
-    if (
-      indice >= 0
-    ) {
-
-      return indice;
-
-    }
-
-  }
-
-
-  for (
-    const nombre
-    of nombres
-  ) {
-
-    const buscado =
-      normalizarTexto(
-        nombre
-      );
-
-
-    const indice =
-      cabeceras.findIndex(
-        cabecera =>
-          normalizarTexto(
-            cabecera
-          ).includes(
-            buscado
-          )
-      );
-
-
-    if (
-      indice >= 0
-    ) {
-
-      return indice;
-
-    }
-
-  }
-
-
-  return -1;
-
-}
-
-
-/* ============================================================
-   CSV DEL REGISTRO
-   ============================================================ */
-
-
-function parseCSV(
-  texto
-) {
-
-  const filas = [];
-
-  let fila = [];
-
-  let campo = "";
-
-  let comillas = false;
-
-
-  for (
-    let i = 0;
-    i < texto.length;
-    i++
-  ) {
-
-    const c =
-      texto[i];
-
-
-    const siguiente =
-      texto[i + 1];
-
-
-    if (
-      comillas
-    ) {
-
-      if (
-        c === '"' &&
-        siguiente === '"'
-      ) {
-
-        campo += '"';
-
-        i++;
-
-      }
-
-      else if (
-        c === '"'
-      ) {
-
-        comillas =
-          false;
-
-      }
-
-      else {
-
-        campo += c;
-
-      }
-
-    }
-
-
-    else if (
-      c === '"'
-    ) {
-
-      comillas =
-        true;
-
-    }
-
-
-    else if (
-      c === ","
-    ) {
-
-      fila.push(
-        campo
-      );
-
-      campo = "";
-
-    }
-
-
-    else if (
-      c === "\n"
-    ) {
-
-      fila.push(
-        campo
-      );
-
-      filas.push(
-        fila
-      );
-
-      fila = [];
-
-      campo = "";
-
-    }
-
-
-    else if (
-      c !== "\r"
-    ) {
-
-      campo += c;
-
-    }
-
-  }
-
-
-  if (
-    campo ||
-    fila.length
-  ) {
-
-    fila.push(
-      campo
-    );
-
-    filas.push(
-      fila
-    );
-
-  }
-
-
-  return filas;
-
-}
-
-
-/* ============================================================
-   CARGAR REGISTRO
-   ============================================================ */
-
-
-async function cargarRegistro() {
-
-  if (
-    registroAyudantes
-  ) {
-
-    return registroAyudantes;
-
-  }
-
-
-  const respuesta =
-    await fetch(
-      AYUDANTES_URL,
-      {
-        cache:
-          "no-store"
-      }
-    );
-
-
-  if (
-    !respuesta.ok
-  ) {
-
-    throw new Error(
-      "No se pudo acceder al registro de ayudantes."
-    );
-
-  }
-
-
-  const texto =
-    await respuesta.text();
-
-
-  const filas =
-    parseCSV(
-      texto
-    );
-
-
-  if (
-    filas.length < 2
-  ) {
-
-    throw new Error(
-      "El registro de ayudantes está vacío."
-    );
-
-  }
-
-
-  const cabeceras =
-    filas[0];
-
-
-  const indiceNombre =
-    encontrarColumna(
-      cabeceras,
-      [
-        "Postulante",
-        "Nombre",
-        "Nombre completo",
-        "Alumno",
-        "Estudiante"
-      ]
-    );
-
-
-  const indiceRut =
-    encontrarColumna(
-      cabeceras,
-      [
-        "RUT",
-        "R.U.T.",
-        "Rut postulante"
-      ]
-    );
-
-
-  const indiceEvaluacion =
-    encontrarColumna(
-      cabeceras,
-      [
-        "Evaluación",
-        "Evaluacion",
-        "Evaluación final",
-        "Puntaje",
-        "Nota evaluación",
-        "Nota Registro"
-      ]
-    );
-
-
-  const nombreCol =
-    indiceNombre >= 0
-      ? indiceNombre
-      : 0;
-
-
-  const rutCol =
-    indiceRut >= 0
-      ? indiceRut
-      : 1;
-
-
-  const evaluacionCol =
-    indiceEvaluacion >= 0
-      ? indiceEvaluacion
-      : 2;
-
-
-  registroAyudantes =
-    filas
-      .slice(1)
-      .filter(
-        fila =>
-          textoSeguro(
-            fila[
-              nombreCol
-            ]
-          )
-      )
-      .map(
-        fila => ({
-
-          nombre:
-            textoSeguro(
-              fila[
-                nombreCol
-              ]
-            ),
-
-          rut:
-            textoSeguro(
-              fila[
-                rutCol
-              ]
-            ),
-
-          evaluacion:
-            evaluacionNumero(
-              fila[
-                evaluacionCol
-              ]
-            )
-
-        })
-      );
-
-
-  return registroAyudantes;
-
-}
-
-
-/* ============================================================
-   ÍNDICES DEL REGISTRO
-   ============================================================ */
-
-
-function construirIndices(
-  registro
-) {
-
-  const porRut =
-    new Map();
-
-
-  const porNombre =
-    new Map();
-
-
-  for (
-    const persona
-    of registro
-  ) {
-
-    const rut =
-      normalizarRut(
-        persona.rut
-      );
-
-
-    const nombre =
-      normalizarNombre(
-        persona.nombre
-      );
-
-
-    if (
-      rut &&
-      !porRut.has(rut)
-    ) {
-
-      porRut.set(
-        rut,
-        persona
-      );
-
-    }
-
-
-    if (
-      nombre &&
-      !porNombre.has(nombre)
-    ) {
-
-      porNombre.set(
-        nombre,
-        persona
-      );
-
-    }
-
-  }
-
-
-  return {
-    porRut,
-    porNombre
-  };
-
-}
-
-
-/* ============================================================
-   BUSCAR PERSONA
-   ============================================================ */
-
-
-function buscarPersona(
-  indices,
-  rut,
-  nombre
-) {
-
-  if (
-    rut &&
-    indices.porRut.has(rut)
-  ) {
-
-    return indices.porRut.get(
-      rut
-    );
-
-  }
-
-
-  if (
-    nombre &&
-    indices.porNombre.has(nombre)
-  ) {
-
-    return indices.porNombre.get(
-      nombre
-    );
-
-  }
-
-
-  return null;
-
-}
-
-
-/* ============================================================
-   ENCONTRAR FILA DE CABECERAS
-   ============================================================ */
-
-
-function encontrarCabecera(
-  hoja
-) {
-
-  const rango =
-    XLSX.utils.decode_range(
-      hoja["!ref"]
-    );
-
-
-  for (
-    let fila = rango.s.r;
-    fila <= rango.e.r;
-    fila++
-  ) {
-
-    for (
-      let columna = rango.s.c;
-      columna <= rango.e.c;
-      columna++
-    ) {
-
-      const celda =
-        hoja[
-          XLSX.utils.encode_cell({
-            r: fila,
-            c: columna
-          })
-        ];
-
-
-      if (
-        normalizarTexto(
-          celda?.v
-        ) ===
-        normalizarTexto(
-          "Postulante"
-        )
-      ) {
-
-        return fila;
-
-      }
-
-    }
-
-  }
-
-
-  return -1;
-
-}
-
-
-/* ============================================================
-   DETERMINAR TIPO
-   ============================================================ */
-
-
-function determinarTipo(
-  cargo,
-  comentario,
-  primeraColumna
-) {
-
-  const cargoTexto =
-    normalizarTexto(
-      cargo
-    );
-
-
-  const comentarioTexto =
-    normalizarTexto(
-      comentario
-    );
-
-
-  const primera =
-    normalizarTexto(
-      primeraColumna
-    );
-
-
-  /*
-   * PRIMERO: CARGO
-   *
-   * Esta es la fuente más confiable
-   * del Excel que subiste.
-   */
-
-  if (
-    cargoTexto.includes(
-      "aux"
-    ) &&
-    (
-      cargoTexto.includes(
-        "control"
-      ) ||
-      cargoTexto === "aux"
-    )
-  ) {
-
-    return "Aux de Control";
-
-  }
-
-
-  if (
-    cargoTexto.includes(
-      "ayudante"
-    )
-  ) {
-
-    return "Ayudante";
-
-  }
-
-
-  /*
-   * SEGUNDO: COMENTARIO
-   */
-
-  if (
-    comentarioTexto.includes(
-      "aux de control"
-    ) ||
-    comentarioTexto.includes(
-      "auxiliar de control"
-    ) ||
-    comentarioTexto.includes(
-      "auxiliar"
-    ) ||
-    comentarioTexto.includes(
-      "aux control"
-    )
-  ) {
-
-    return "Aux de Control";
-
-  }
-
-
-  /*
-   * TERCERO: PRIMERA COLUMNA
-   *
-   * Esto sirve para MA2002,
-   * donde aparecen cosas como:
-   *
-   * aux control
-   * ayudante1
-   * ayudante2
-   */
-
-  if (
-    primera.includes(
-      "aux"
-    ) &&
-    primera.includes(
-      "control"
-    )
-  ) {
-
-    return "Aux de Control";
-
-  }
-
-
-  if (
-    primera.includes(
-      "ayudante"
-    )
-  ) {
-
-    return "Ayudante";
-
-  }
-
-
-  /*
-   * Si no dice nada, asumimos
-   * Ayudante.
-   */
-
-  return "Ayudante";
-
-}
-
-
-/* ============================================================
-   PROCESAR CURSO
-   ============================================================ */
-
-
-function procesarCurso(
-  nombreHoja,
-  hoja,
-  indices
-) {
-
-  const filaCabecera =
-    encontrarCabecera(
-      hoja
-    );
-
-
-  if (
-    filaCabecera < 0
-  ) {
-
-    return null;
-
-  }
-
-
-  const rango =
-    XLSX.utils.decode_range(
-      hoja["!ref"]
-    );
-
-
-  /*
-   * TODAS LAS CABECERAS
-   */
-
-  const cabeceras =
-    [];
-
-
-  for (
-    let columna = rango.s.c;
-    columna <= rango.e.c;
-    columna++
-  ) {
-
-    let encabezado =
-      textoSeguro(
-        hoja[
-          XLSX.utils.encode_cell({
-            r: filaCabecera,
-            c: columna
-          })
-        ]?.v
-      );
-
-
-    if (
-      !encabezado
-    ) {
-
-      encabezado =
-        `Columna ${columna + 1}`;
-
-    }
-
-
-    cabeceras.push(
-      encabezado
-    );
-
-  }
-
-
-  const indiceNombre =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_NOMBRE
-      ]
-    );
-
-
-  const indiceCargo =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_CARGO
-      ]
-    );
-
-
-  const indiceComentario =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_COMENTARIO
-      ]
-    );
-
-
-  const indiceNota =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_NOTA
-      ]
-    );
-
-
-  const indiceCreditos =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_CREDITOS
-      ]
-    );
-
-
-  const indiceIndice =
-    encontrarColumna(
-      cabeceras,
-      [
-        COLUMNA_INDICE
-      ]
-    );
-
-
-  /*
-   * RUT
-   */
-
-  let indiceRut =
-    encontrarColumna(
-      cabeceras,
-      [
-        "RUT",
-        "R.U.T.",
-        "Rut postulante"
-      ]
-    );
-
-
-  /*
-   * En tu Excel:
-   *
-   * Postulante = columna F
-   * RUT = columna G
-   */
-
-  if (
-    indiceRut < 0
-  ) {
-
-    indiceRut =
-      indiceNombre + 1;
-
-  }
-
-
-  const postulantes =
-    [];
-
-
-  /*
-   * RECORRER FILAS
-   */
-
-  for (
-    let fila =
-      filaCabecera + 1;
-
-    fila <= rango.e.r;
-
-    fila++
-  ) {
-
-    const nombre =
-      textoSeguro(
-        hoja[
-          XLSX.utils.encode_cell({
-            r: fila,
-            c: indiceNombre
-          })
-        ]?.v
-      );
-
-
-    if (
-      !nombre
-    ) {
-
-      continue;
-
-    }
-
-
-    const rut =
-      textoSeguro(
-        hoja[
-          XLSX.utils.encode_cell({
-            r: fila,
-            c: indiceRut
-          })
-        ]?.v
-      );
-
-
-    const cargo =
-      indiceCargo >= 0
-        ? textoSeguro(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceCargo
-              })
-            ]?.v
-          )
-        : "";
-
-
-    const comentario =
-      indiceComentario >= 0
-        ? textoSeguro(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceComentario
-              })
-            ]?.v
-          )
-        : "";
-
+    const COLUMNA_COMENTARIO =
+      "Comentario";
 
     /*
-     * Primera columna de la fila.
-     *
-     * Útil especialmente para MA2002.
+     * Detecta postulaciones a "Aux. de Control"
+     * a partir de la columna Cargo (cuando ya viene
+     * marcada) o, en su defecto, de menciones en el
+     * comentario del postulante: "aux de control",
+     * "auxiliar de control", "aux control", etc.
      */
+    const PATRON_AUX_CONTROL =
+      /\bauxiliar\s+de\s+control\b|\baux\.?\s+de\s+control\b|\baux\.?\s+control\b/;
 
-    const primeraColumna =
-      textoSeguro(
-        hoja[
-          XLSX.utils.encode_cell({
-            r: fila,
-            c: rango.s.c
-          })
-        ]?.v
+    function esTextoAuxControl(texto = "") {
+
+      return PATRON_AUX_CONTROL.test(
+        normalizarTexto(texto)
+      );
+
+    }
+
+    function detectarTipoPostulacion(cargo, comentario) {
+
+      const cargoNormalizado =
+        normalizarTexto(cargo);
+
+      const esAuxPorCargo =
+        cargoNormalizado.includes("aux") &&
+        cargoNormalizado.includes("control");
+
+      if (
+        esAuxPorCargo ||
+        esTextoAuxControl(comentario)
+      ) {
+
+        return "aux_control";
+
+      }
+
+      return "ayudante";
+
+    }
+
+
+    /* =========================================================
+       ELEMENTOS
+       ========================================================= */
+
+    const archivoInput =
+      document.getElementById(
+        "archivo"
+      );
+
+    const procesarButton =
+      document.getElementById(
+        "procesar"
+      );
+
+    const nombreArchivo =
+      document.getElementById(
+        "nombre-archivo"
+      );
+
+    const estado =
+      document.getElementById(
+        "estado"
+      );
+
+    const resultados =
+      document.getElementById(
+        "resultados"
+      );
+
+    const courseTabs =
+      document.getElementById(
+        "course-tabs"
+      );
+
+    const courseSection =
+      document.getElementById(
+        "course-section"
       );
 
 
-    const nombreNormalizado =
-      normalizarNombre(
-        nombre
-      );
+    let archivoSeleccionado =
+      null;
 
+    let registroAyudantes =
+      null;
 
-    const rutNormalizado =
-      normalizarRut(
-        rut
-      );
-
-
-    const personaRegistro =
-      buscarPersona(
-        indices,
-        rutNormalizado,
-        nombreNormalizado
-      );
-
-
-    const notaRegistro =
-      personaRegistro
-        ? personaRegistro.evaluacion
-        : null;
-
-
-    const notaCurso =
-      indiceNota >= 0
-        ? parseNumero(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceNota
-              })
-            ]?.v
-          )
-        : null;
-
-
-    const creditos =
-      indiceCreditos >= 0
-        ? parseNumero(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceCreditos
-              })
-            ]?.v
-          )
-        : null;
-
-
-    const indiceAprobacion =
-      indiceIndice >= 0
-        ? parseNumero(
-            hoja[
-              XLSX.utils.encode_cell({
-                r: fila,
-                c: indiceIndice
-              })
-            ]?.v
-          )
-        : null;
-
-
-    const tipo =
-      determinarTipo(
-        cargo,
-        comentario,
-        primeraColumna
-      );
-
-
-    /*
-     * GUARDAMOS TODAS LAS COLUMNAS
-     * ORIGINALES.
-     */
-
-    const valores =
+    let cursos =
       [];
 
+    let cursoActivo =
+      0;
 
-    for (
-      let columna = rango.s.c;
-      columna <= rango.e.c;
-      columna++
-    ) {
+    let filtroTipo =
+      "todos";
 
-      valores.push(
-        hoja[
-          XLSX.utils.encode_cell({
-            r: fila,
-            c: columna
-          })
-        ]?.v ?? ""
-      );
+
+    /* =========================================================
+       UTILIDADES
+       ========================================================= */
+
+    function textoSeguro(valor) {
+
+      if (
+        valor === null ||
+        valor === undefined
+      ) {
+        return "";
+      }
+
+      return String(valor).trim();
 
     }
 
 
-    postulantes.push({
+    function normalizarTexto(valor = "") {
 
-      nombre,
+      return textoSeguro(valor)
+        .replace(/"/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
 
-      rut,
-
-      notaRegistro,
-
-      notaCurso,
-
-      creditos,
-
-      indiceAprobacion,
-
-      tipo,
-
-      valores
-
-    });
-
-  }
+    }
 
 
-  /*
-   * ==========================================================
-   * ORDEN
-   * ==========================================================
-   *
-   * 4
-   * 3
-   * 2
-   * 1
-   * SIN REGISTRO
-   *
-   * Y dentro de cada grupo:
-   *
-   * Nota Curso mayor → menor
-   */
+    function normalizarNombre(valor = "") {
 
-  postulantes.sort(
-    (
-      a,
-      b
-    ) => {
-
-      const registroA =
-        a.notaRegistro === null
-          ? -1
-          : a.notaRegistro;
-
-
-      const registroB =
-        b.notaRegistro === null
-          ? -1
-          : b.notaRegistro;
+      const limpio =
+        textoSeguro(valor)
+          .replace(/"/g, "")
+          .trim();
 
 
       if (
-        registroA !==
-        registroB
+        limpio.includes(",")
       ) {
 
-        return (
-          registroB -
-          registroA
+        const partes =
+          limpio.split(",");
+
+        const apellidos =
+          partes.shift().trim();
+
+        const nombres =
+          partes.join(",").trim();
+
+        return normalizarTexto(
+          `${nombres} ${apellidos}`
         );
 
       }
 
 
-      const notaA =
-        a.notaCurso === null
-          ? -Infinity
-          : a.notaCurso;
+      return normalizarTexto(
+        limpio
+      );
+
+    }
 
 
-      const notaB =
-        b.notaCurso === null
-          ? -Infinity
-          : b.notaCurso;
+    function normalizarRut(valor = "") {
+
+      return textoSeguro(valor)
+        .toUpperCase()
+        .replace(/[\s.\-]/g, "");
+
+    }
+
+
+    function parseNumero(valor) {
+
+      if (
+        typeof valor === "number"
+      ) {
+
+        return Number.isFinite(valor)
+          ? valor
+          : null;
+
+      }
+
+
+      const texto =
+        textoSeguro(valor);
+
+
+      if (!texto) {
+        return null;
+      }
+
+
+      /*
+       * Maneja:
+       *
+       * 0,85
+       * 0.85
+       * 85%
+       */
+
+      let limpio =
+        texto
+          .replace(/\s/g, "")
+          .replace("%", "");
+
+
+      let numero;
+
+
+      if (
+        limpio.includes(",")
+      ) {
+
+        limpio =
+          limpio.replace(
+            /\./g,
+            ""
+          ).replace(
+            ",",
+            "."
+          );
+
+      }
+
+
+      numero =
+        Number(
+          limpio
+        );
+
+
+      if (
+        !Number.isFinite(numero)
+      ) {
+
+        return null;
+
+      }
+
+
+      /*
+       * Si viene como 85 en vez de 0,85,
+       * lo interpretamos como 85%.
+       */
+
+      if (
+        numero > 1 &&
+        numero <= 100
+      ) {
+
+        numero =
+          numero / 100;
+
+      }
+
+
+      return numero;
+
+    }
+
+
+    function evaluacionNumero(valor) {
+
+      const numero =
+        parseInt(
+          textoSeguro(valor),
+          10
+        );
 
 
       return (
-        notaB -
-        notaA
-      );
+        Number.isInteger(numero) &&
+        numero >= 1 &&
+        numero <= 4
+      )
+        ? numero
+        : null;
 
     }
-  );
 
 
-  return {
-
-    nombre:
-      nombreHoja,
-
-    cabeceras,
-
-    postulantes
-
-  };
-
-}
-
-
-/* ============================================================
-   PROCESAR ARCHIVO
-   ============================================================ */
-
-
-async function procesarArchivo() {
-
-  if (
-    !archivoSeleccionado
-  ) {
-
-    return;
-
-  }
-
-
-  procesarButton.disabled =
-    true;
-
-
-  resultados.classList.add(
-    "hidden"
-  );
-
-
-  mostrarEstado(
-    "Cargando registro de ayudantes…",
-    "loading"
-  );
-
-
-  try {
-
-    const registro =
-      await cargarRegistro();
-
-
-    mostrarEstado(
-      "Procesando postulaciones…",
-      "loading"
-    );
-
-
-    const datos =
-      await archivoSeleccionado
-        .arrayBuffer();
-
-
-    const workbook =
-      XLSX.read(
-        datos,
-        {
-          type:
-            "array",
-          cellDates:
-            true
-        }
-      );
-
-
-    const indices =
-      construirIndices(
-        registro
-      );
-
-
-    cursos =
-      [];
-
-
-    for (
-      const nombreHoja
-      of workbook.SheetNames
+    function mostrarEstado(
+      mensaje,
+      tipo = ""
     ) {
 
-      const hoja =
-        workbook.Sheets[
-          nombreHoja
-        ];
+      estado.textContent =
+        mensaje;
+
+      estado.className =
+        `status ${tipo}`.trim();
+
+    }
 
 
-      const curso =
-        procesarCurso(
-          nombreHoja,
-          hoja,
-          indices
+    /* =========================================================
+       ENCONTRAR COLUMNA
+       ========================================================= */
+
+    function encontrarColumna(
+      cabeceras,
+      posiblesNombres
+    ) {
+
+      for (
+        const posible of posiblesNombres
+      ) {
+
+        const indice =
+          cabeceras.findIndex(
+            cabecera =>
+              normalizarTexto(cabecera) ===
+              normalizarTexto(posible)
+          );
+
+
+        if (
+          indice >= 0
+        ) {
+
+          return indice;
+
+        }
+
+      }
+
+
+      for (
+        const posible of posiblesNombres
+      ) {
+
+        const buscado =
+          normalizarTexto(posible);
+
+
+        const indice =
+          cabeceras.findIndex(
+            cabecera =>
+              normalizarTexto(cabecera)
+                .includes(buscado)
+          );
+
+
+        if (
+          indice >= 0
+        ) {
+
+          return indice;
+
+        }
+
+      }
+
+
+      return -1;
+
+    }
+
+
+    /* =========================================================
+       CSV
+       ========================================================= */
+
+    function parseCSV(texto) {
+
+      const filas = [];
+
+      let fila = [];
+
+      let campo = "";
+
+      let dentroComillas = false;
+
+
+      for (
+        let i = 0;
+        i < texto.length;
+        i++
+      ) {
+
+        const caracter =
+          texto[i];
+
+        const siguiente =
+          texto[i + 1];
+
+
+        if (
+          dentroComillas
+        ) {
+
+          if (
+            caracter === '"' &&
+            siguiente === '"'
+          ) {
+
+            campo += '"';
+            i++;
+
+          }
+
+          else if (
+            caracter === '"'
+          ) {
+
+            dentroComillas =
+              false;
+
+          }
+
+          else {
+
+            campo += caracter;
+
+          }
+
+        }
+
+        else if (
+          caracter === '"'
+        ) {
+
+          dentroComillas =
+            true;
+
+        }
+
+        else if (
+          caracter === ","
+        ) {
+
+          fila.push(campo);
+          campo = "";
+
+        }
+
+        else if (
+          caracter === "\r"
+        ) {
+
+          // Ignorar.
+
+        }
+
+        else if (
+          caracter === "\n"
+        ) {
+
+          fila.push(campo);
+
+          filas.push(fila);
+
+          fila = [];
+
+          campo = "";
+
+        }
+
+        else {
+
+          campo += caracter;
+
+        }
+
+      }
+
+
+      if (
+        campo.length ||
+        fila.length
+      ) {
+
+        fila.push(campo);
+        filas.push(fila);
+
+      }
+
+
+      return filas;
+
+    }
+
+
+    /* =========================================================
+       CARGAR REGISTRO
+       ========================================================= */
+
+    async function cargarRegistro() {
+
+      if (
+        registroAyudantes
+      ) {
+
+        return registroAyudantes;
+
+      }
+
+
+      const respuesta =
+        await fetch(
+          AYUDANTES_URL,
+          {
+            cache:
+              "no-store"
+          }
         );
 
 
       if (
-        curso &&
-        curso.postulantes.length
+        !respuesta.ok
       ) {
 
-        cursos.push(
-          curso
+        throw new Error(
+          "No se pudo acceder al registro de evaluaciones."
         );
 
       }
 
-    }
 
+      const texto =
+        await respuesta.text();
 
-    if (
-      cursos.length === 0
-    ) {
 
-      throw new Error(
-        'No se encontraron hojas con una columna "Postulante".'
-      );
+      const filas =
+        parseCSV(texto);
 
-    }
 
+      if (
+        filas.length < 2
+      ) {
 
-    cursoActivo =
-      0;
+        throw new Error(
+          "El registro de evaluaciones está vacío."
+        );
 
+      }
 
-    renderCursos();
 
+      const cabeceras =
+        filas[0];
 
-    resultados.classList.remove(
-      "hidden"
-    );
 
-
-    mostrarEstado(
-      `Se cargaron ${cursos.length} cursos correctamente.`,
-      "success"
-    );
-
-  }
-
-
-  catch (
-    error
-  ) {
-
-    console.error(
-      error
-    );
-
-
-    resultados.classList.add(
-      "hidden"
-    );
-
-
-    mostrarEstado(
-      error.message ||
-      "Ocurrió un error al procesar el archivo.",
-      "error"
-    );
-
-  }
-
-
-  finally {
-
-    procesarButton.disabled =
-      false;
-
-  }
-
-}
-
-
-/* ============================================================
-   ESCAPAR HTML
-   ============================================================ */
-
-
-function escaparHTML(
-  valor
-) {
-
-  return textoSeguro(
-    valor
-  )
-
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-
-    .replace(
-      /</g,
-      "&lt;"
-    )
-
-    .replace(
-      />/g,
-      "&gt;"
-    )
-
-    .replace(
-      /"/g,
-      "&quot;"
-    );
-
-}
-
-
-/* ============================================================
-   FORMATEAR VALOR
-   ============================================================ */
-
-
-function formatearValor(
-  valor
-) {
-
-  if (
-    valor === null ||
-    valor === undefined ||
-    valor === ""
-  ) {
-
-    return "—";
-
-  }
-
-
-  if (
-    valor instanceof Date
-  ) {
-
-    return valor.toLocaleDateString(
-      "es-CL"
-    );
-
-  }
-
-
-  return escaparHTML(
-    valor
-  );
-
-}
-
-
-/* ============================================================
-   RENDERIZAR
-   ============================================================ */
-
-
-function renderCursos() {
-
-  renderTabs();
-
-  renderCursoActivo();
-
-}
-
-
-/* ============================================================
-   PESTAÑAS
-   ============================================================ */
-
-
-function renderTabs() {
-
-  courseTabs.innerHTML =
-    "";
-
-
-  cursos.forEach(
-    (
-      curso,
-      indice
-    ) => {
-
-      const boton =
-        document.createElement(
-          "button"
+      const indiceNombre =
+        encontrarColumna(
+          cabeceras,
+          [
+            "Postulante",
+            "Nombre",
+            "Nombre completo",
+            "Alumno",
+            "Estudiante"
+          ]
         );
 
 
-      boton.type =
-        "button";
+      const indiceRut =
+        encontrarColumna(
+          cabeceras,
+          [
+            "RUT",
+            "R.U.T.",
+            "Rut postulante"
+          ]
+        );
 
 
-      boton.className =
-        `course-tab ${
-          indice === cursoActivo
-            ? "active"
-            : ""
-        }`;
+      const indiceEvaluacion =
+        encontrarColumna(
+          cabeceras,
+          [
+            "Evaluación",
+            "Evaluacion",
+            "Evaluación final",
+            "Puntaje",
+            "Nota evaluación"
+          ]
+        );
 
 
-      boton.textContent =
-        curso.nombre;
+      const indiceInformacion =
+        encontrarColumna(
+          cabeceras,
+          [
+            COLUMNA_INFORMACION
+          ]
+        );
 
 
-      boton.addEventListener(
-        "click",
-        () => {
-
-          cursoActivo =
-            indice;
+      const nombreCol =
+        indiceNombre >= 0
+          ? indiceNombre
+          : 0;
 
 
-          renderCursos();
+      const rutCol =
+        indiceRut >= 0
+          ? indiceRut
+          : 1;
 
+
+      const evaluacionCol =
+        indiceEvaluacion >= 0
+          ? indiceEvaluacion
+          : 2;
+
+
+      registroAyudantes =
+        filas
+          .slice(1)
+          .filter(
+            fila =>
+              textoSeguro(
+                fila[nombreCol]
+              )
+          )
+          .map(
+            fila => ({
+
+              nombre:
+                textoSeguro(
+                  fila[nombreCol]
+                ),
+
+              rut:
+                textoSeguro(
+                  fila[rutCol]
+                ),
+
+              evaluacion:
+                evaluacionNumero(
+                  fila[evaluacionCol]
+                ),
+
+              informacion:
+                indiceInformacion >= 0
+                  ? textoSeguro(
+                      fila[
+                        indiceInformacion
+                      ]
+                    )
+                  : ""
+
+            })
+          );
+
+
+      console.log(
+        "Registro cargado:",
+        {
+          columnas:
+            cabeceras,
+          informacion:
+            indiceInformacion >= 0
+              ? cabeceras[
+                  indiceInformacion
+                ]
+              : "NO ENCONTRADA"
         }
       );
 
 
-      courseTabs.appendChild(
-        boton
-      );
+      return registroAyudantes;
 
     }
-  );
 
-}
 
+    /* =========================================================
+       ÍNDICES
+       ========================================================= */
 
-/* ============================================================
-   CURSO ACTIVO
-   ============================================================ */
+    function construirIndices(
+      registro
+    ) {
 
+      const porRut =
+        new Map();
 
-function renderCursoActivo() {
+      const porNombre =
+        new Map();
 
-  const curso =
-    cursos[
-      cursoActivo
-    ];
 
+      for (
+        const persona of registro
+      ) {
 
-  if (
-    !curso
-  ) {
+        const rut =
+          normalizarRut(
+            persona.rut
+          );
 
-    courseSection.innerHTML =
-      `
-        <div class="no-results">
-          No hay cursos disponibles.
-        </div>
-      `;
-
-
-    return;
-
-  }
-
-
-  /*
-   * SEPARAMOS EN:
-   *
-   * AUX DE CONTROL
-   * AYUDANTES
-   */
-
-
-  const auxiliares =
-    curso.postulantes.filter(
-      persona =>
-        persona.tipo ===
-        "Aux de Control"
-    );
-
-
-  const ayudantes =
-    curso.postulantes.filter(
-      persona =>
-        persona.tipo ===
-        "Ayudante"
-    );
-
-
-  courseSection.innerHTML =
-    `
-
-      <div class="course-header">
-
-        <h3 class="course-name">
-          ${escaparHTML(
-            curso.nombre
-          )}
-        </h3>
-
-      </div>
-
-
-      <h4 class="group-title">
-        Auxiliares de Control
-      </h4>
-
-      ${
-        auxiliares.length
-          ? `
-            <div class="table-wrapper">
-
-              <table class="selection-table">
-
-                <thead>
-
-                  ${renderEncabezados(
-                    curso.cabeceras
-                  )}
-
-                </thead>
-
-                <tbody>
-
-                  ${renderFilas(
-                    auxiliares,
-                    curso.cabeceras
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-          `
-          : `
-            <div class="no-results">
-              No hay postulantes identificados
-              como Aux de Control.
-            </div>
-          `
-      }
-
-
-      <h4 class="group-title">
-        Ayudantes
-      </h4>
-
-      ${
-        ayudantes.length
-          ? `
-            <div class="table-wrapper">
-
-              <table class="selection-table">
-
-                <thead>
-
-                  ${renderEncabezados(
-                    curso.cabeceras
-                  )}
-
-                </thead>
-
-                <tbody>
-
-                  ${renderFilas(
-                    ayudantes,
-                    curso.cabeceras
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-          `
-          : `
-            <div class="no-results">
-              No hay postulantes identificados
-              como Ayudante.
-            </div>
-          `
-      }
-
-    `;
-
-}
-
-
-/* ============================================================
-   ENCABEZADOS
-   ============================================================ */
-
-
-function renderEncabezados(
-  cabeceras
-) {
-
-  let html =
-    "<tr>";
-
-
-  html +=
-    `
-      <th class="position">
-        #
-      </th>
-    `;
-
-
-  /*
-   * ESTA ES LA NUEVA COLUMNA.
-   *
-   * QUEDA ANTES DE POSTULANTE.
-   */
-
-  html +=
-    `
-      <th>
-        Nota Registro
-      </th>
-    `;
-
-
-  /*
-   * TIPO TAMBIÉN VA ANTES
-   * DE POSTULANTE.
-   */
-
-  html +=
-    `
-      <th>
-        Tipo
-      </th>
-    `;
-
-
-  /*
-   * AHORA TODAS LAS COLUMNAS
-   * ORIGINALES DEL EXCEL.
-   */
-
-  cabeceras.forEach(
-    cabecera => {
-
-      html +=
-        `
-          <th>
-            ${escaparHTML(
-              cabecera
-            )}
-          </th>
-        `;
-
-    }
-  );
-
-
-  html +=
-    "</tr>";
-
-
-  return html;
-
-}
-
-
-/* ============================================================
-   FILAS
-   ============================================================ */
-
-
-function renderFilas(
-  postulantes,
-  cabeceras
-) {
-
-  return postulantes
-
-    .map(
-      (
-        persona,
-        indice
-      ) => {
-
-
-        /*
-         * NOTA REGISTRO
-         */
-
-        let claseRegistro =
-          "evaluation-none";
-
-
-        let textoRegistro =
-          "—";
+        const nombre =
+          normalizarNombre(
+            persona.nombre
+          );
 
 
         if (
-          persona.notaRegistro !==
-          null
+          rut &&
+          !porRut.has(rut)
         ) {
 
-          textoRegistro =
-            persona.notaRegistro;
-
-
-          claseRegistro =
-            persona.notaRegistro >= 3
-              ? "evaluation-good"
-              : "evaluation-bad";
+          porRut.set(
+            rut,
+            persona
+          );
 
         }
 
 
-        /*
-         * CRÉDITOS
-         */
+        if (
+          nombre &&
+          !porNombre.has(nombre)
+        ) {
 
-        const pocosCreditos =
-          persona.creditos !== null &&
-          persona.creditos < 120;
+          porNombre.set(
+            nombre,
+            persona
+          );
 
+        }
 
-        const claseCreditos =
-          pocosCreditos
-            ? "credits-warning"
-            : "";
-
-
-        const avisoCreditos =
-          pocosCreditos
-            ? `
-              <span class="credit-warning">
-                menos de 120
-              </span>
-            `
-            : "";
+      }
 
 
-        /*
-         * TIPO
-         */
+      return {
+        porRut,
+        porNombre
+      };
 
-        const claseTipo =
-          persona.tipo ===
-          "Aux de Control"
-            ? "type-aux"
-            : "type-ayudante";
+    }
 
 
-        /*
-         * FILA
-         */
+    /* =========================================================
+       BUSCAR PERSONA
+       ========================================================= */
 
-        let html =
-          `
+    function buscarPersona(
+      indices,
+      rut,
+      nombre
+    ) {
 
-            <tr>
+      if (rut) {
 
-              <td class="position">
-                ${indice + 1}
-              </td>
-
-
-              <td>
-
-                <span
-                  class="
-                    evaluation
-                    ${claseRegistro}
-                  "
-                >
-                  ${textoRegistro}
-                </span>
-
-              </td>
+        const persona =
+          indices.porRut.get(rut);
 
 
-              <td>
+        if (
+          persona
+        ) {
 
-                <span
-                  class="
-                    type-badge
-                    ${claseTipo}
-                  "
-                >
-                  ${persona.tipo}
-                </span>
+          return persona;
 
-              </td>
+        }
 
-          `;
+      }
 
 
-        /*
-         * TODAS LAS COLUMNAS
-         * ORIGINALES.
-         */
+      if (nombre) {
 
-        cabeceras.forEach(
-          (
-            cabecera,
-            columna
-          ) => {
+        const persona =
+          indices.porNombre.get(nombre);
 
 
-            const valor =
-              persona.valores[
-                columna
-              ];
+        if (
+          persona
+        ) {
+
+          return persona;
+
+        }
+
+      }
 
 
-            const nombreColumna =
+      return null;
+
+    }
+
+
+    /* =========================================================
+       ENCONTRAR CABECERA DEL EXCEL
+       ========================================================= */
+
+    function encontrarCabecera(
+      hoja
+    ) {
+
+      const rango =
+        XLSX.utils.decode_range(
+          hoja["!ref"] ||
+          "A1:A1"
+        );
+
+
+      for (
+        let fila = rango.s.r;
+        fila <= rango.e.r;
+        fila++
+      ) {
+
+        for (
+          let columna = rango.s.c;
+          columna <= rango.e.c;
+          columna++
+        ) {
+
+          const celda =
+            hoja[
+              XLSX.utils.encode_cell({
+                r: fila,
+                c: columna
+              })
+            ];
+
+
+          if (
+            normalizarTexto(celda?.v) ===
+            normalizarTexto(COLUMNA_NOMBRE)
+          ) {
+
+            return fila;
+
+          }
+
+        }
+
+      }
+
+
+      return -1;
+
+    }
+
+
+    /* =========================================================
+       PROCESAR CURSO
+       ========================================================= */
+
+    function procesarCurso(
+      nombreHoja,
+      hoja,
+      indices
+    ) {
+
+      const filaCabecera =
+        encontrarCabecera(
+          hoja
+        );
+
+
+      if (
+        filaCabecera < 0
+      ) {
+
+        return null;
+
+      }
+
+
+      const rango =
+        XLSX.utils.decode_range(
+          hoja["!ref"]
+        );
+
+
+      const cabeceras = [];
+
+
+      for (
+        let columna = rango.s.c;
+        columna <= rango.e.c;
+        columna++
+      ) {
+
+        cabeceras.push(
+          textoSeguro(
+            hoja[
+              XLSX.utils.encode_cell({
+                r: filaCabecera,
+                c: columna
+              })
+            ]?.v
+          )
+        );
+
+      }
+
+
+      const indiceNombre =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_NOMBRE)
+        );
+
+
+      if (
+        indiceNombre < 0
+      ) {
+
+        return null;
+
+      }
+
+
+      const indiceNota =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_NOTA)
+        );
+
+
+      const indiceCreditos =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_CREDITOS)
+        );
+
+
+      /*
+       * NUEVO:
+       * Buscamos exactamente "Índice Aprob."
+       */
+
+      const indiceAprobacion =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_INDICE_APROB)
+        );
+
+
+      let indiceRut =
+        cabeceras.findIndex(
+          columna => {
+
+            const nombre =
               normalizarTexto(
-                cabecera
+                columna
               );
 
-
-            /*
-             * POSTULANTE
-             */
-
-            if (
-              nombreColumna ===
-              normalizarTexto(
-                COLUMNA_NOMBRE
-              )
-            ) {
-
-              html +=
-                `
-
-                  <td class="postulante">
-
-                    ${formatearValor(
-                      valor
-                    )}
-
-                  </td>
-
-                `;
-
-
-              return;
-
-            }
-
-
-            /*
-             * CRÉDITOS
-             */
-
-            if (
-              nombreColumna ===
-              normalizarTexto(
-                COLUMNA_CREDITOS
-              )
-            ) {
-
-              html +=
-                `
-
-                  <td
-                    class="${claseCreditos}"
-                  >
-
-                    ${formatearValor(
-                      valor
-                    )}
-
-                    ${avisoCreditos}
-
-                  </td>
-
-                `;
-
-
-              return;
-
-            }
-
-
-            /*
-             * COMENTARIO
-             */
-
-            if (
-              nombreColumna ===
-              normalizarTexto(
-                COLUMNA_COMENTARIO
-              )
-            ) {
-
-              html +=
-                `
-
-                  <td class="comment-cell">
-
-                    ${
-                      valor
-                        ? `
-                          <div
-                            class="comment-text"
-                          >
-                            ${formatearValor(
-                              valor
-                            )}
-                          </div>
-                        `
-                        : "—"
-                    }
-
-                  </td>
-
-                `;
-
-
-              return;
-
-            }
-
-
-            /*
-             * ÍNDICE DE APROBACIÓN
-             */
-
-            if (
-              nombreColumna ===
-              normalizarTexto(
-                COLUMNA_INDICE
-              )
-            ) {
-
-              const numero =
-                persona.indiceAprobacion;
-
-
-              let clase =
-                "approval-none";
-
-
-              let texto =
-                formatearValor(
-                  valor
-                );
-
-
-              if (
-                numero !== null
-              ) {
-
-                texto =
-                  numero
-                    .toFixed(2)
-                    .replace(
-                      ".",
-                      ","
-                    );
-
-
-                clase =
-                  numero >= 0.85
-                    ? "approval-good"
-                    : "approval-bad";
-
-              }
-
-
-              html +=
-                `
-
-                  <td>
-
-                    <span
-                      class="
-                        approval-index
-                        ${clase}
-                      "
-                    >
-                      ${texto}
-                    </span>
-
-                  </td>
-
-                `;
-
-
-              return;
-
-            }
-
-
-            /*
-             * RESTO DE COLUMNAS
-             */
-
-            html +=
-              `
-
-                <td>
-                  ${formatearValor(
-                    valor
-                  )}
-                </td>
-
-              `;
+            return (
+              nombre === "rut" ||
+              nombre === "r.u.t." ||
+              nombre === "rut postulante"
+            );
 
           }
         );
 
 
-        html +=
-          `
+      /*
+       * Compatibilidad con el Excel anterior.
+       */
 
-            </tr>
+      if (
+        indiceRut < 0
+      ) {
 
-          `;
-
-
-        return html;
+        indiceRut = 6;
 
       }
-    )
-
-    .join("");
-
-}
 
 
-/* ============================================================
-   EVENTOS
-   ============================================================ */
+      const indiceCargo =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_CARGO)
+        );
 
 
-archivoInput.addEventListener(
-  "change",
-  () => {
-
-    archivoSeleccionado =
-      archivoInput.files?.[0] ||
-      null;
-
-
-    resultados.classList.add(
-      "hidden"
-    );
+      const indiceComentario =
+        cabeceras.findIndex(
+          columna =>
+            normalizarTexto(columna) ===
+            normalizarTexto(COLUMNA_COMENTARIO)
+        );
 
 
-    if (
-      !archivoSeleccionado
-    ) {
+      const postulantes = [];
 
-      nombreArchivo.textContent =
-        "";
+
+      for (
+        let fila = filaCabecera + 1;
+        fila <= rango.e.r;
+        fila++
+      ) {
+
+        const nombreOriginal =
+          textoSeguro(
+            hoja[
+              XLSX.utils.encode_cell({
+                r: fila,
+                c: indiceNombre
+              })
+            ]?.v
+          );
+
+
+        if (
+          !nombreOriginal
+        ) {
+
+          continue;
+
+        }
+
+
+        const rutOriginal =
+          textoSeguro(
+            hoja[
+              XLSX.utils.encode_cell({
+                r: fila,
+                c: indiceRut
+              })
+            ]?.v
+          );
+
+
+        const rut =
+          normalizarRut(
+            rutOriginal
+          );
+
+
+        const nombre =
+          normalizarNombre(
+            nombreOriginal
+          );
+
+
+        const persona =
+          buscarPersona(
+            indices,
+            rut,
+            nombre
+          );
+
+
+        const evaluacion =
+          persona
+            ? persona.evaluacion
+            : null;
+
+
+        const informacion =
+          persona
+            ? persona.informacion
+            : "";
+
+
+        const nota =
+          indiceNota >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceNota
+                  })
+                ]?.v
+              )
+            : null;
+
+
+        const creditos =
+          indiceCreditos >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceCreditos
+                  })
+                ]?.v
+              )
+            : null;
+
+
+        /*
+         * NUEVO:
+         * Índice de aprobación directamente
+         * desde el Excel que se sube.
+         */
+
+        const indiceAprobacionValor =
+          indiceAprobacion >= 0
+            ? parseNumero(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceAprobacion
+                  })
+                ]?.v
+              )
+            : null;
+
+
+        const cargoValor =
+          indiceCargo >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceCargo
+                  })
+                ]?.v
+              )
+            : "";
+
+
+        const comentarioValor =
+          indiceComentario >= 0
+            ? textoSeguro(
+                hoja[
+                  XLSX.utils.encode_cell({
+                    r: fila,
+                    c: indiceComentario
+                  })
+                ]?.v
+              )
+            : "";
+
+
+        const tipo =
+          detectarTipoPostulacion(
+            cargoValor,
+            comentarioValor
+          );
+
+
+        postulantes.push({
+
+          nombre:
+            nombreOriginal,
+
+          rut:
+            rutOriginal,
+
+          nota,
+
+          evaluacion,
+
+          indiceAprobacion:
+            indiceAprobacionValor,
+
+          creditos,
+
+          informacion,
+
+          tipo,
+
+          comentario:
+            comentarioValor
+
+        });
+
+      }
+
+
+      /*
+       * Orden:
+       *
+       * Evaluación 4
+       * Evaluación 3
+       * Evaluación 2
+       * Evaluación 1
+       * Sin evaluación
+       *
+       * Dentro de cada evaluación:
+       * mayor nota primero.
+       */
+
+      postulantes.sort(
+        (a, b) => {
+
+          const evaluacionA =
+            a.evaluacion === null
+              ? -1
+              : a.evaluacion;
+
+
+          const evaluacionB =
+            b.evaluacion === null
+              ? -1
+              : b.evaluacion;
+
+
+          if (
+            evaluacionA !==
+            evaluacionB
+          ) {
+
+            return (
+              evaluacionB -
+              evaluacionA
+            );
+
+          }
+
+
+          const notaA =
+            a.nota === null
+              ? -Infinity
+              : a.nota;
+
+
+          const notaB =
+            b.nota === null
+              ? -Infinity
+              : b.nota;
+
+
+          return (
+            notaB -
+            notaA
+          );
+
+        }
+      );
+
+
+      return {
+
+        nombre:
+          nombreHoja,
+
+        postulantes
+
+      };
+
+    }
+
+
+    /* =========================================================
+       PROCESAR ARCHIVO
+       ========================================================= */
+
+    async function procesarArchivo() {
+
+      if (
+        !archivoSeleccionado
+      ) {
+
+        return;
+
+      }
 
 
       procesarButton.disabled =
         true;
 
 
-      mostrarEstado(
-        "Selecciona un archivo Excel para comenzar."
+      resultados.classList.add(
+        "hidden"
       );
 
 
-      return;
+      mostrarEstado(
+        "Cargando registro de evaluaciones…",
+        "loading"
+      );
+
+
+      try {
+
+        const registro =
+          await cargarRegistro();
+
+
+        mostrarEstado(
+          "Procesando cursos…",
+          "loading"
+        );
+
+
+        const datos =
+          await archivoSeleccionado
+            .arrayBuffer();
+
+
+        const workbook =
+          XLSX.read(
+            datos,
+            {
+              type:
+                "array",
+              cellDates:
+                true
+            }
+          );
+
+
+        const indices =
+          construirIndices(
+            registro
+          );
+
+
+        cursos = [];
+
+
+        for (
+          const nombreHoja
+          of workbook.SheetNames
+        ) {
+
+          const hoja =
+            workbook.Sheets[
+              nombreHoja
+            ];
+
+
+          const curso =
+            procesarCurso(
+              nombreHoja,
+              hoja,
+              indices
+            );
+
+
+          if (
+            curso &&
+            curso.postulantes.length
+          ) {
+
+            cursos.push(
+              curso
+            );
+
+          }
+
+        }
+
+
+        if (
+          cursos.length === 0
+        ) {
+
+          throw new Error(
+            'No se encontraron cursos con una columna "Postulante".'
+          );
+
+        }
+
+
+        cursoActivo =
+          0;
+
+        filtroTipo =
+          "todos";
+
+
+        renderCursos();
+
+
+        resultados.classList.remove(
+          "hidden"
+        );
+
+
+        mostrarEstado(
+          `Se cargaron ${cursos.length} cursos correctamente.`,
+          "success"
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          error
+        );
+
+
+        resultados.classList.add(
+          "hidden"
+        );
+
+
+        mostrarEstado(
+          error.message ||
+          "Ocurrió un error al procesar el archivo.",
+          "error"
+        );
+
+      }
+
+      finally {
+
+        procesarButton.disabled =
+          false;
+
+      }
 
     }
 
 
-    nombreArchivo.textContent =
-      archivoSeleccionado.name;
+    /* =========================================================
+       ESCAPAR HTML
+       ========================================================= */
+
+    function escaparHTML(
+      valor
+    ) {
+
+      return textoSeguro(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    }
 
 
-    procesarButton.disabled =
-      false;
+    /* =========================================================
+       RENDERIZAR CURSOS
+       ========================================================= */
+
+    function renderCursos() {
+
+      renderTabs();
+
+      renderCursoActivo();
+
+    }
 
 
-    mostrarEstado(
-      "Archivo seleccionado. Presiona «Mostrar postulantes»."
+    /* =========================================================
+       PESTAÑAS
+       ========================================================= */
+
+    function renderTabs() {
+
+      courseTabs.innerHTML =
+        "";
+
+
+      cursos.forEach(
+        (curso, indice) => {
+
+          const boton =
+            document.createElement(
+              "button"
+            );
+
+
+          boton.type =
+            "button";
+
+
+          boton.className =
+            `course-tab ${
+              indice === cursoActivo
+                ? "active"
+                : ""
+            }`;
+
+
+          boton.textContent =
+            curso.nombre;
+
+
+          boton.addEventListener(
+            "click",
+            () => {
+
+              cursoActivo =
+                indice;
+
+              renderCursos();
+
+            }
+          );
+
+
+          courseTabs.appendChild(
+            boton
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       CURSO ACTIVO
+       ========================================================= */
+
+    function renderCursoActivo() {
+
+      const curso =
+        cursos[
+          cursoActivo
+        ];
+
+
+      if (!curso) {
+
+        courseSection.innerHTML =
+          `
+            <div class="no-results">
+              No hay cursos disponibles.
+            </div>
+          `;
+
+        return;
+
+      }
+
+
+      const total =
+        curso.postulantes.length;
+
+      const totalAyudantes =
+        curso.postulantes.filter(
+          p => p.tipo === "ayudante"
+        ).length;
+
+      const totalAuxControl =
+        curso.postulantes.filter(
+          p => p.tipo === "aux_control"
+        ).length;
+
+      const postulantesFiltrados =
+        filtroTipo === "todos"
+          ? curso.postulantes
+          : curso.postulantes.filter(
+              p => p.tipo === filtroTipo
+            );
+
+
+      courseSection.innerHTML =
+        `
+
+          <div class="course-header">
+
+            <div>
+
+              <h3 class="course-name">
+                ${escaparHTML(
+                  curso.nombre
+                )}
+              </h3>
+
+              <p class="course-info">
+                ${total}
+                ${
+                  total === 1
+                    ? "postulante"
+                    : "postulantes"
+                }
+                · ${totalAyudantes} ayudante${totalAyudantes === 1 ? "" : "s"}
+                · ${totalAuxControl} aux. control
+              </p>
+
+            </div>
+
+            <div class="type-filters">
+
+              <button
+                type="button"
+                class="type-filter ${filtroTipo === "todos" ? "active" : ""}"
+                data-tipo="todos"
+              >
+                Todos (${total})
+              </button>
+
+              <button
+                type="button"
+                class="type-filter ${filtroTipo === "ayudante" ? "active" : ""}"
+                data-tipo="ayudante"
+              >
+                Ayudantes (${totalAyudantes})
+              </button>
+
+              <button
+                type="button"
+                class="type-filter ${filtroTipo === "aux_control" ? "active" : ""}"
+                data-tipo="aux_control"
+              >
+                Aux. Control (${totalAuxControl})
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table class="selection-table">
+
+              <thead>
+
+                <tr>
+
+                  <th class="position">
+                    #
+                  </th>
+
+                  <th>
+                    Postulante
+                  </th>
+
+                  <th>
+                    Tipo
+                  </th>
+
+                  <th>
+                    RUT
+                  </th>
+
+                  <th>
+                    Nota curso
+                  </th>
+
+                  <th>
+                    Evaluación
+                  </th>
+
+                  <th>
+                    Índice Aprob.
+                  </th>
+
+                  <th>
+                    Créditos
+                  </th>
+
+                  <th>
+                    Información
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                ${renderFilas(
+                  postulantesFiltrados
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        `;
+
+      courseSection
+        .querySelectorAll(".type-filter")
+        .forEach(boton => {
+
+          boton.addEventListener(
+            "click",
+            () => {
+
+              filtroTipo =
+                boton.dataset.tipo;
+
+              renderCursoActivo();
+
+            }
+          );
+
+        });
+
+    }
+
+
+    /* =========================================================
+       FILAS
+       ========================================================= */
+
+    function renderFilas(
+      postulantes
+    ) {
+
+      return postulantes
+        .map(
+          (persona, indice) => {
+
+            /* -------------------------
+               EVALUACIÓN
+               ------------------------- */
+
+            let claseEvaluacion =
+              "evaluation-none";
+
+            let textoEvaluacion =
+              "—";
+
+
+            if (
+              persona.evaluacion !== null
+            ) {
+
+              textoEvaluacion =
+                persona.evaluacion;
+
+
+              claseEvaluacion =
+                persona.evaluacion >= 3
+                  ? "evaluation-good"
+                  : "evaluation-bad";
+
+            }
+
+
+            /* -------------------------
+               ÍNDICE DE APROBACIÓN
+               ------------------------- */
+
+            let claseAprobacion =
+              "approval-none";
+
+            let textoAprobacion =
+              "—";
+
+
+            if (
+              persona.indiceAprobacion !== null
+            ) {
+
+              textoAprobacion =
+                persona.indiceAprobacion
+                  .toFixed(2)
+                  .replace(
+                    ".",
+                    ","
+                  );
+
+
+              /*
+               * 0,85 o superior = AZUL
+               * menor a 0,85 = ROJO
+               */
+
+              claseAprobacion =
+                persona.indiceAprobacion >= 0.85
+                  ? "approval-good"
+                  : "approval-bad";
+
+            }
+
+
+            /* -------------------------
+               CRÉDITOS
+               ------------------------- */
+
+            const pocosCreditos =
+              persona.creditos !== null &&
+              persona.creditos < 120;
+
+
+            const claseCreditos =
+              pocosCreditos
+                ? "credits-warning"
+                : "";
+
+
+            const avisoCreditos =
+              pocosCreditos
+                ? `
+                  <span class="credit-warning">
+                    menos de 120
+                  </span>
+                `
+                : "";
+
+
+            /* -------------------------
+               NOTA
+               ------------------------- */
+
+            const nota =
+              persona.nota === null
+                ? "—"
+                : String(
+                    persona.nota
+                  ).replace(
+                    ".",
+                    ","
+                  );
+
+
+            /* -------------------------
+               RUT
+               ------------------------- */
+
+            const rut =
+              persona.rut
+                ? escaparHTML(
+                    persona.rut
+                  )
+                : "—";
+
+
+            /* -------------------------
+               TIPO DE POSTULACIÓN
+               ------------------------- */
+
+            const esAux =
+              persona.tipo === "aux_control";
+
+            const claseTipo =
+              esAux
+                ? "type-aux-control"
+                : "type-ayudante";
+
+            const textoTipo =
+              esAux
+                ? "Aux. Control"
+                : "Ayudante";
+
+
+            /* -------------------------
+               INFORMACIÓN
+               ------------------------- */
+
+            const informacion =
+              persona.informacion
+                ? `
+                  <div class="comment-box">
+
+                    <span class="comment-icon">
+                      💬
+                    </span>
+
+                    <span class="comment-text">
+                      ${escaparHTML(
+                        persona.informacion
+                      )}
+                    </span>
+
+                  </div>
+                `
+                : `
+                  <span class="comment-empty">
+                    Sin información
+                  </span>
+                `;
+
+
+            return `
+
+              <tr>
+
+                <td class="position">
+                  ${indice + 1}
+                </td>
+
+
+                <td class="postulante">
+                  ${escaparHTML(
+                    persona.nombre
+                  )}
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="type-badge ${claseTipo}"
+                  >
+                    ${textoTipo}
+                  </span>
+
+                </td>
+
+
+                <td>
+                  ${rut}
+                </td>
+
+
+                <td>
+                  ${nota}
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="evaluation ${claseEvaluacion}"
+                  >
+                    ${textoEvaluacion}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="approval-index ${claseAprobacion}"
+                  >
+                    ${textoAprobacion}
+                  </span>
+
+                </td>
+
+
+                <td class="${claseCreditos}">
+
+                  ${
+                    persona.creditos === null
+                      ? "—"
+                      : persona.creditos
+                  }
+
+                  ${avisoCreditos}
+
+                </td>
+
+
+                <td class="comment-cell">
+
+                  ${informacion}
+
+                </td>
+
+              </tr>
+
+            `;
+
+          }
+        )
+        .join("");
+
+    }
+
+
+    /* =========================================================
+       EVENTOS
+       ========================================================= */
+
+    archivoInput.addEventListener(
+      "change",
+      () => {
+
+        archivoSeleccionado =
+          archivoInput.files?.[0] ||
+          null;
+
+
+        resultados.classList.add(
+          "hidden"
+        );
+
+
+        if (
+          !archivoSeleccionado
+        ) {
+
+          nombreArchivo.textContent =
+            "";
+
+          procesarButton.disabled =
+            true;
+
+          mostrarEstado(
+            "Selecciona un archivo Excel para comenzar."
+          );
+
+          return;
+
+        }
+
+
+        nombreArchivo.textContent =
+          archivoSeleccionado.name;
+
+
+        procesarButton.disabled =
+          false;
+
+
+        mostrarEstado(
+          "Archivo seleccionado. Presiona «Mostrar postulantes»."
+        );
+
+      }
     );
 
-  }
-);
 
+    procesarButton.addEventListener(
+      "click",
+      procesarArchivo
+    );
 
-procesarButton.addEventListener(
-  "click",
-  procesarArchivo
-);
-
-
-</script>
-
-</body>
-
+  </script></body>
 </html>
