@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EterIA — Evaluar ayudantes</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    /* =========================================================
+       ETERIA — EVALUACIÓN
+       ========================================================= */
+
+    .eval-card {
+      width: 100%;
+      max-width: none !important;
+    }
+
+    body.evaluacion .container {
+      max-width: 1600px;
+    }
+
+    .hidden { display: none !important; }
+
+    .status {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status.success { border-color: rgba(80, 200, 120, 0.35); color: #8ee6a8; }
+    .status.error   { border-color: rgba(217, 70, 63, 0.45); color: #ff8b84; }
+
+    /* ----- Roster controls ----- */
+    .roster-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .roster-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .roster-form input[type="text"] {
+      flex: 1;
+      min-width: 160px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+    }
+
+    .roster-form input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+    button.small {
+      flex: none;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-hover);
+      color: var(--ink-soft);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button.small:hover, label.small:hover { border-color: var(--accent); color: var(--accent); }
+    button.small.danger:hover { border-color: var(--accent); color: #ff8b84; }
+
+    label.small {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-hover);
+      color: var(--ink-soft);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+    }
+
+    /* ----- Settings panel ----- */
+    .settings-panel {
+      margin-top: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-soft);
+      padding: 4px 18px 18px;
+    }
+
+    .settings-panel summary {
+      cursor: pointer;
+      padding: 14px 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink);
+      list-style: none;
+    }
+
+    .settings-panel summary::-webkit-details-marker { display: none; }
+    .settings-panel summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 8px;
+      color: var(--accent);
+      transition: transform 0.15s ease;
+    }
+    .settings-panel[open] summary::before { transform: rotate(90deg); }
+
+    .settings-hint {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--ink-faint);
+      margin: 0 0 14px;
+    }
+
+    .settings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .settings-row {
+      display: grid;
+      grid-template-columns: 1fr 140px 110px;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .settings-row.settings-head {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .settings-row input[type="number"] {
+      width: 64px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .settings-row select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+    }
+
+    .settings-umbrales {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      border-top: 1px solid var(--border-soft);
+      padding-top: 14px;
+    }
+
+    .settings-umbrales label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: var(--ink-soft);
+    }
+
+    .settings-umbrales input[type="number"] {
+      width: 56px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .settings-hint-inline {
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+
+    /* ----- Table ----- */
+    .table-scroll {
+      margin-top: 26px;
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 70vh;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    #tabla-eval {
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    #tabla-eval th, #tabla-eval td {
+      border-bottom: 1px solid var(--border-soft);
+      border-right: 1px solid var(--border-soft);
+      padding: 7px 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    #tabla-eval thead th {
+      background: var(--surface);
+      color: var(--ink-soft);
+      font-family: var(--font-mono);
+      font-weight: 500;
+      position: sticky;
+      z-index: 3;
+    }
+
+    #thead-row1 th { top: 0; height: 32px; font-size: 11px; }
+    #thead-row2 th { top: 32px; height: 26px; font-size: 10px; color: var(--ink-faint); }
+
+    .col-nombre-head, .col-nombre {
+      position: sticky;
+      left: 0;
+      z-index: 4;
+      background: var(--surface);
+      text-align: left;
+      min-width: 190px;
+      max-width: 190px;
+      white-space: normal;
+    }
+
+    td.col-nombre { background: var(--bg-soft); }
+
+    .nombre-principal {
+      font-weight: 500;
+      color: var(--ink);
+      font-size: 12.5px;
+      line-height: 1.3;
+    }
+
+    .rut-secundario {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+
+    .eliminar-fila {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      border: none;
+      background: transparent;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 2px 4px;
+    }
+
+    .eliminar-fila:hover { color: #ff8b84; }
+
+    td.col-nombre { position: sticky; padding-right: 22px; }
+
+    .cat-head.tint-a, td.col-check.tint-a { background: rgba(255,255,255,0.015); }
+    .cat-head.tint-b, td.col-check.tint-b { background: transparent; }
+    .col-check-head.tint-a { background: rgba(255,255,255,0.015); }
+    .col-check-head.tint-b { background: transparent; }
+
+    #tabla-eval td.col-check {
+      width: 34px;
+    }
+
+    #tabla-eval input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .col-resultado-head, td.col-resultado {
+      min-width: 120px;
+      background: var(--surface);
+    }
+
+    .resultado-porcentaje {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .resultado-nota {
+      display: inline-block;
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .resultado-nota.nota-buena { background: rgba(80, 200, 120, 0.14); color: #8ee6a8; }
+    .resultado-nota.nota-mala  { background: rgba(217, 70, 63, 0.16); color: #ff8b84; }
+
+    .resultado-detalle {
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--ink-faint);
+    }
+
+    .fila-vacia td {
+      padding: 22px 12px;
+      color: var(--ink-faint);
+      text-align: left;
+      white-space: normal;
+    }
+
+    /* ----- Actions ----- */
+    .eval-actions {
+      margin-top: 24px;
+      max-width: 340px;
+    }
+
+    .eval-actions-secondary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button.main-action {
+      width: 100%;
+      margin-top: 0;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--accent-dark);
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #06170F;
+      font-weight: 600;
+      font-size: 13.5px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.1s ease;
+    }
+
+    button.main-action:hover { filter: brightness(1.08); }
+    button.main-action:active { transform: translateY(1px); }
+
+    @media (max-width: 720px) {
+      .card.wide.eval-card { padding: 28px 18px; }
+      .settings-row { grid-template-columns: 1fr; row-gap: 6px; }
+    }
+  </style>
+</head>
+<body class="evaluacion">
+
+  <!-- HEADER -->
+  <header class="top-bar">
+    <div class="top-inner">
+      <a href="index.html" class="logo">COORDINACIÓN &amp; CO.</a>
+      <div class="search-box">
+        <input type="text" placeholder="Buscar">
+        <span class="icon">🔍</span>
+      </div>
+      <div class="right-box">EterIA</div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO -->
+  <main class="container">
+    <div class="card wide eval-card">
+
+      <span class="badge">Paso 3 · Evaluación</span>
+
+      <h1 style="margin:0 0 18px; font-family:var(--font-display); font-size:36px; line-height:1.05;">
+        Evaluar ayudantes
+      </h1>
+
+      <p class="subtitle">
+        Registra las faltas de cada ayudante durante el semestre (recorrecciones, atrasos, reclamos)
+        y la evaluación se calcula sola. Todo queda guardado en este navegador.
+      </p>
+
+      <!-- ROSTER -->
+      <div class="roster-controls">
+        <form id="form-agregar" class="roster-form">
+          <input type="text" id="input-nombre" placeholder="Nombre del ayudante" required>
+          <input type="text" id="input-rut" placeholder="RUT (opcional)">
+          <button type="submit" class="small">+ Agregar</button>
+        </form>
+
+        <label for="input-importar" class="small">Importar lista (Excel/CSV)</label>
+        <input type="file" id="input-importar" accept=".xlsx,.xls,.csv" class="visually-hidden">
+      </div>
+
+      <!-- CONFIGURACIÓN -->
+      <details class="settings-panel" id="panel-config">
+        <summary>Configuración de ponderación</summary>
+
+        <p class="settings-hint">
+          Cada falta descuenta el porcentaje indicado del 100%. Estos valores son un punto de partida:
+          ajústalos para que calcen con tu pauta real, y quedan guardados automáticamente.
+        </p>
+
+        <div class="settings-grid">
+          <div class="settings-row settings-head">
+            <span>Categoría</span><span>Descuento por falta</span><span>Tipo</span>
+          </div>
+
+          <div class="settings-row">
+            <span>Recorrecciones graves</span>
+            <span><input type="number" id="peso-grave" min="0" max="100" step="0.5"> %</span>
+            <span>
+              <select id="tipo-grave">
+                <option value="leve">Leve</option>
+                <option value="fuerte">Fuerte</option>
+              </select>
+            </span>
+          </div>
+
+          <div class="settings-row">
+            <span>Recorrecciones leves</span>
+            <span><input type="number" id="peso-leves" min="0" max="100" step="0.5"> %</span>
+            <span>
+              <select id="tipo-leves">
+                <option value="leve">Leve</option>
+                <option value="fuerte">Fuerte</option>
+              </select>
+            </span>
+          </div>
+
+          <div class="settings-row">
+            <span>Atraso escaneos</span>
+            <span><input type="number" id="peso-escaneos" min="0" max="100" step="0.5"> %</span>
+            <span>
+              <select id="tipo-escaneos">
+                <option value="leve">Leve</option>
+                <option value="fuerte">Fuerte</option>
+              </select>
+            </span>
+          </div>
+
+          <div class="settings-row">
+            <span>Atraso o no ingreso de notas</span>
+            <span><input type="number" id="peso-notas" min="0" max="100" step="0.5"> %</span>
+            <span>
+              <select id="tipo-notas">
+                <option value="leve">Leve</option>
+                <option value="fuerte">Fuerte</option>
+              </select>
+            </span>
+          </div>
+
+          <div class="settings-row">
+            <span>Atraso o no respuesta a reclamos</span>
+            <span><input type="number" id="peso-reclamos" min="0" max="100" step="0.5"> %</span>
+            <span>
+              <select id="tipo-reclamos">
+                <option value="leve">Leve</option>
+                <option value="fuerte">Fuerte</option>
+              </select>
+            </span>
+          </div>
+        </div>
+
+        <div class="settings-umbrales">
+          <span class="settings-hint-inline">Nota final:</span>
+          <label>4 si evaluación ≥ <input type="number" id="umbral-u4" min="0" max="100">%</label>
+          <label>3 si evaluación ≥ <input type="number" id="umbral-u3" min="0" max="100">%</label>
+          <label>2 si evaluación ≥ <input type="number" id="umbral-u2" min="0" max="100">%</label>
+          <span class="settings-hint-inline">(bajo el último umbral → Nota 1)</span>
+        </div>
+      </details>
+
+      <!-- TABLA -->
+      <div class="table-scroll">
+        <table id="tabla-eval">
+          <thead>
+            <tr id="thead-row1">
+              <th rowspan="2" class="col-nombre-head">Ayudante</th>
+              <th rowspan="2" class="col-resultado-head">Resultado</th>
+            </tr>
+            <tr id="thead-row2"></tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+
+      <!-- ACCIONES -->
+      <div class="eval-actions">
+        <button type="button" id="exportar-excel" class="main-action">Descargar Excel</button>
+      </div>
+      <div class="eval-actions-secondary">
+        <button type="button" id="exportar-registro" class="small">Descargar CSV del registro (nombre, RUT, evaluación)</button>
+        <button type="button" id="reiniciar" class="small danger">Reiniciar datos</button>
+      </div>
+
+      <div id="estado" class="status hidden"></div>
+
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================
+       EterIA — Evaluar ayudantes
+       Bitácora interactiva de faltas + cálculo de evaluación.
+       ========================================================= */
+
+    const STORAGE_KEY = "eteria_evaluacion_v1";
+
+    const CATEGORIAS = [
+      { key: "grave",    label: "Recorrecciones graves",            tipoDefault: "fuerte", pesoDefault: 6 },
+      { key: "leves",    label: "Recorrecciones leves",             tipoDefault: "leve",   pesoDefault: 2 },
+      { key: "escaneos", label: "Atraso escaneos",                  tipoDefault: "leve",   pesoDefault: 3 },
+      { key: "notas",    label: "Atraso o no ingreso de notas",     tipoDefault: "fuerte", pesoDefault: 5 },
+      { key: "reclamos", label: "Atraso o no respuesta a reclamos", tipoDefault: "fuerte", pesoDefault: 4 },
+    ];
+
+    const CONTROLES = ["C1A", "C1B", "C2", "CREC", "C3", "C4"];
+
+    function estadoInicial() {
+      return {
+        ayudantes: [],
+        faltas: {},
+        pesos: Object.fromEntries(CATEGORIAS.map(c => [c.key, c.pesoDefault])),
+        tipos: Object.fromEntries(CATEGORIAS.map(c => [c.key, c.tipoDefault])),
+        umbrales: { u4: 95, u3: 85, u2: 70 },
+      };
+    }
+
+    function cargarEstado() {
+      try {
+        const guardado = localStorage.getItem(STORAGE_KEY);
+        if (!guardado) return estadoInicial();
+        const datos = JSON.parse(guardado);
+        const base = estadoInicial();
+        return {
+          ayudantes: Array.isArray(datos.ayudantes) ? datos.ayudantes : base.ayudantes,
+          faltas: datos.faltas && typeof datos.faltas === "object" ? datos.faltas : base.faltas,
+          pesos: { ...base.pesos, ...(datos.pesos || {}) },
+          tipos: { ...base.tipos, ...(datos.tipos || {}) },
+          umbrales: { ...base.umbrales, ...(datos.umbrales || {}) },
+        };
+      } catch {
+        return estadoInicial();
+      }
+    }
+
+    let estado = cargarEstado();
+
+    function guardarEstado() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+      } catch (err) {
+        console.error("No se pudo guardar en este navegador:", err);
+      }
+    }
+
+    /* ----- Utilidades ----- */
+
+    function textoSeguro(valor) {
+      return valor == null ? "" : String(valor).trim();
+    }
+
+    function normalizarTexto(valor = "") {
+      return textoSeguro(valor)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function normalizarRut(valor = "") {
+      return textoSeguro(valor).toUpperCase().replace(/[\s.\-]/g, "");
+    }
+
+    function idAyudante(rut, nombre) {
+      const r = normalizarRut(rut);
+      if (r) return "rut:" + r;
+      return "nom:" + normalizarTexto(nombre);
+    }
+
+    function escaparHTML(valor) {
+      return textoSeguro(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function mostrarEstado(mensaje, tipo = "") {
+      const el = document.getElementById("estado");
+      el.textContent = mensaje;
+      el.className = `status ${tipo}`.trim();
+      el.classList.remove("hidden");
+    }
+
+    function descargarBlob(blob, nombre) {
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = nombre;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ----- Datos: ayudantes y faltas ----- */
+
+    function agregarAyudante(nombre, rut) {
+      nombre = textoSeguro(nombre);
+      rut = textoSeguro(rut);
+      if (!nombre) return false;
+
+      const id = idAyudante(rut, nombre);
+      if (estado.ayudantes.some(a => a.id === id)) return false;
+
+      estado.ayudantes.push({ id, nombre, rut });
+      estado.faltas[id] = {};
+      guardarEstado();
+      return true;
+    }
+
+    function eliminarAyudante(id) {
+      estado.ayudantes = estado.ayudantes.filter(a => a.id !== id);
+      delete estado.faltas[id];
+      guardarEstado();
+    }
+
+    function toggleFalta(ayudanteId, catKey, control, marcado) {
+      if (!estado.faltas[ayudanteId]) estado.faltas[ayudanteId] = {};
+      if (!estado.faltas[ayudanteId][catKey]) estado.faltas[ayudanteId][catKey] = {};
+      estado.faltas[ayudanteId][catKey][control] = marcado;
+      guardarEstado();
+    }
+
+    function calcularResultado(id) {
+      const faltasAy = estado.faltas[id] || {};
+      let deduccion = 0, leve = 0, fuerte = 0, total = 0;
+
+      for (const cat of CATEGORIAS) {
+        const marcas = faltasAy[cat.key] || {};
+        for (const ctrl of CONTROLES) {
+          if (marcas[ctrl]) {
+            total++;
+            deduccion += Number(estado.pesos[cat.key]) || 0;
+            if (estado.tipos[cat.key] === "leve") leve++; else fuerte++;
+          }
+        }
+      }
+
+      const porcentaje = Math.max(0, Math.round((100 - deduccion) * 10) / 10);
+      const { u4, u3, u2 } = estado.umbrales;
+      let nota = 1;
+      if (porcentaje >= u4) nota = 4;
+      else if (porcentaje >= u3) nota = 3;
+      else if (porcentaje >= u2) nota = 2;
+
+      return { porcentaje, leve, fuerte, total, nota };
+    }
+
+    /* ----- Render: cabecera ----- */
+
+    function renderCabecera() {
+      const row1 = document.getElementById("thead-row1");
+      const row2 = document.getElementById("thead-row2");
+      const resultadoHead = row1.querySelector(".col-resultado-head");
+
+      row1.querySelectorAll(".cat-head").forEach(el => el.remove());
+      row2.innerHTML = "";
+
+      CATEGORIAS.forEach((cat, ci) => {
+        const tint = ci % 2 === 0 ? "tint-a" : "tint-b";
+
+        const th = document.createElement("th");
+        th.colSpan = CONTROLES.length;
+        th.className = `cat-head ${tint}`;
+        th.textContent = cat.label;
+        row1.insertBefore(th, resultadoHead);
+
+        CONTROLES.forEach(ctrl => {
+          const th2 = document.createElement("th");
+          th2.className = `col-check-head ${tint}`;
+          th2.textContent = ctrl;
+          row2.appendChild(th2);
+        });
+      });
+    }
+
+    /* ----- Render: filas ----- */
+
+    function renderTabla() {
+      const tbody = document.getElementById("tabla-body");
+      tbody.innerHTML = "";
+
+      if (!estado.ayudantes.length) {
+        const tr = document.createElement("tr");
+        tr.className = "fila-vacia";
+        const td = document.createElement("td");
+        td.colSpan = 2 + CATEGORIAS.length * CONTROLES.length;
+        td.textContent = "Todavía no agregas ayudantes. Usa el formulario de arriba o importa una lista.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      estado.ayudantes.forEach(a => tbody.appendChild(crearFilaAyudante(a)));
+    }
+
+    function crearFilaAyudante(ayudante) {
+      const tr = document.createElement("tr");
+      tr.dataset.id = ayudante.id;
+
+      const tdNombre = document.createElement("td");
+      tdNombre.className = "col-nombre";
+      tdNombre.style.position = "relative";
+      tdNombre.innerHTML = `
+        <div class="nombre-principal">${escaparHTML(ayudante.nombre)}</div>
+        <div class="rut-secundario">${escaparHTML(ayudante.rut || "—")}</div>
+      `;
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.type = "button";
+      btnEliminar.className = "eliminar-fila";
+      btnEliminar.textContent = "×";
+      btnEliminar.title = "Quitar ayudante";
+      btnEliminar.addEventListener("click", () => {
+        if (confirm(`¿Quitar a ${ayudante.nombre} de la lista?`)) {
+          eliminarAyudante(ayudante.id);
+          renderTabla();
+        }
+      });
+      tdNombre.appendChild(btnEliminar);
+      tr.appendChild(tdNombre);
+
+      CATEGORIAS.forEach((cat, ci) => {
+        const tint = ci % 2 === 0 ? "tint-a" : "tint-b";
+        CONTROLES.forEach(ctrl => {
+          const td = document.createElement("td");
+          td.className = `col-check ${tint}`;
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.dataset.id = ayudante.id;
+          input.dataset.cat = cat.key;
+          input.dataset.ctrl = ctrl;
+          input.checked = !!(estado.faltas[ayudante.id] &&
+            estado.faltas[ayudante.id][cat.key] &&
+            estado.faltas[ayudante.id][cat.key][ctrl]);
+
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+      });
+
+      const tdResultado = document.createElement("td");
+      tdResultado.className = "col-resultado";
+      tr.appendChild(tdResultado);
+
+      actualizarResultadoFila(tr, ayudante.id);
+
+      return tr;
+    }
+
+    function actualizarResultadoFila(tr, id) {
+      const r = calcularResultado(id);
+      const td = tr.querySelector(".col-resultado");
+      const claseNota = r.nota >= 3 ? "nota-buena" : "nota-mala";
+      td.innerHTML = `
+        <div class="resultado-porcentaje">${r.porcentaje}%</div>
+        <div class="resultado-nota ${claseNota}">Nota ${r.nota}</div>
+        <div class="resultado-detalle">${r.leve} leves · ${r.fuerte} fuertes</div>
+      `;
+    }
+
+    /* ----- Configuración ----- */
+
+    function inicializarConfiguracion() {
+      CATEGORIAS.forEach(cat => {
+        const inputPeso = document.getElementById(`peso-${cat.key}`);
+        inputPeso.value = estado.pesos[cat.key];
+        inputPeso.addEventListener("input", () => {
+          estado.pesos[cat.key] = Number(inputPeso.value) || 0;
+          guardarEstado();
+          renderTabla();
+        });
+
+        const selectTipo = document.getElementById(`tipo-${cat.key}`);
+        selectTipo.value = estado.tipos[cat.key];
+        selectTipo.addEventListener("change", () => {
+          estado.tipos[cat.key] = selectTipo.value;
+          guardarEstado();
+          renderTabla();
+        });
+      });
+
+      ["u4", "u3", "u2"].forEach(k => {
+        const input = document.getElementById(`umbral-${k}`);
+        input.value = estado.umbrales[k];
+        input.addEventListener("input", () => {
+          estado.umbrales[k] = Number(input.value) || 0;
+          guardarEstado();
+          renderTabla();
+        });
+      });
+    }
+
+    /* ----- Eventos: tabla (delegación) ----- */
+
+    document.getElementById("tabla-eval").addEventListener("change", (e) => {
+      const input = e.target;
+      if (input.type !== "checkbox") return;
+      const { id, cat, ctrl } = input.dataset;
+      toggleFalta(id, cat, ctrl, input.checked);
+      const tr = input.closest("tr");
+      actualizarResultadoFila(tr, id);
+    });
+
+    /* ----- Eventos: agregar / importar ----- */
+
+    document.getElementById("form-agregar").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("input-nombre").value;
+      const rut = document.getElementById("input-rut").value;
+
+      if (agregarAyudante(nombre, rut)) {
+        renderTabla();
+        e.target.reset();
+        document.getElementById("input-nombre").focus();
+        mostrarEstado(`${nombre} fue agregado.`, "success");
+      } else {
+        mostrarEstado("Falta el nombre o ese ayudante ya está en la lista.", "error");
+      }
+    });
+
+    document.getElementById("input-importar").addEventListener("change", async (e) => {
+      const archivo = e.target.files && e.target.files[0];
+      if (!archivo) return;
+
+      try {
+        const datos = await archivo.arrayBuffer();
+        const workbook = XLSX.read(datos, { type: "array" });
+        const hoja = workbook.Sheets[workbook.SheetNames[0]];
+        const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: "" });
+
+        let filaCab = -1, idxNombre = -1, idxRut = -1;
+        for (let i = 0; i < filas.length; i++) {
+          const idxN = filas[i].findIndex(c => /nombre|postulante/i.test(textoSeguro(c)));
+          const idxR = filas[i].findIndex(c => /rut/i.test(textoSeguro(c)));
+          if (idxN >= 0) { filaCab = i; idxNombre = idxN; idxRut = idxR; break; }
+        }
+        if (filaCab < 0) { filaCab = -1; idxNombre = 0; idxRut = 1; }
+
+        let agregados = 0;
+        for (let i = filaCab + 1; i < filas.length; i++) {
+          const nombre = textoSeguro(filas[i][idxNombre]);
+          const rut = idxRut >= 0 ? textoSeguro(filas[i][idxRut]) : "";
+          if (!nombre) continue;
+          if (agregarAyudante(nombre, rut)) agregados++;
+        }
+
+        renderTabla();
+        mostrarEstado(`Se importaron ${agregados} ayudante(s) nuevo(s).`, agregados ? "success" : "");
+      } catch (err) {
+        console.error(err);
+        mostrarEstado("No se pudo leer ese archivo.", "error");
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    /* ----- Eventos: exportar / reiniciar ----- */
+
+    document.getElementById("exportar-excel").addEventListener("click", () => {
+      if (!estado.ayudantes.length) {
+        mostrarEstado("Agrega al menos un ayudante antes de exportar.", "error");
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const encabezado1 = ["N°", "RUT", "NOMBRE"];
+      const encabezado2 = ["", "", ""];
+      CATEGORIAS.forEach(cat => {
+        CONTROLES.forEach((ctrl, i) => {
+          encabezado1.push(i === 0 ? cat.label : "");
+          encabezado2.push(ctrl);
+        });
+      });
+
+      const filasBitacora = [encabezado1, encabezado2];
+      estado.ayudantes.forEach((a, i) => {
+        const fila = [i + 1, a.rut, a.nombre];
+        CATEGORIAS.forEach(cat => {
+          CONTROLES.forEach(ctrl => {
+            const marcado = estado.faltas[a.id] && estado.faltas[a.id][cat.key] && estado.faltas[a.id][cat.key][ctrl];
+            fila.push(marcado ? 1 : "");
+          });
+        });
+        filasBitacora.push(fila);
+      });
+
+      const hojaBitacora = XLSX.utils.aoa_to_sheet(filasBitacora);
+      hojaBitacora["!merges"] = CATEGORIAS.map((_, i) => ({
+        s: { r: 0, c: 3 + i * CONTROLES.length },
+        e: { r: 0, c: 3 + i * CONTROLES.length + CONTROLES.length - 1 },
+      }));
+      XLSX.utils.book_append_sheet(wb, hojaBitacora, "Bitácora");
+
+      const filasResultados = [["RUT", "NOMBRE", "EVALUACIÓN", "LEVES", "FUERTES", "TOTAL", "NOTA (1-4)"]];
+      estado.ayudantes.forEach(a => {
+        const r = calcularResultado(a.id);
+        filasResultados.push([a.rut, a.nombre, `${r.porcentaje}%`, r.leve, r.fuerte, r.total, r.nota]);
+      });
+      const hojaResultados = XLSX.utils.aoa_to_sheet(filasResultados);
+      XLSX.utils.book_append_sheet(wb, hojaResultados, "Resultados");
+
+      const salida = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([salida], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      descargarBlob(blob, "Evaluacion ayudantes.xlsx");
+      mostrarEstado("Excel descargado.", "success");
+    });
+
+    document.getElementById("exportar-registro").addEventListener("click", () => {
+      if (!estado.ayudantes.length) {
+        mostrarEstado("Agrega al menos un ayudante antes de exportar.", "error");
+        return;
+      }
+
+      const filas = [["Nombre", "RUT", "Evaluación"]];
+      estado.ayudantes.forEach(a => {
+        const r = calcularResultado(a.id);
+        filas.push([a.nombre, a.rut, r.nota]);
+      });
+
+      const csv = filas
+        .map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+        .join("\r\n");
+
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      descargarBlob(blob, "registro-ayudantes.csv");
+      mostrarEstado(
+        "CSV descargado. Súbelo (o pega sus datos) en la hoja publicada que usa la página Seleccionar ayudantes.",
+        "success"
+      );
+    });
+
+    document.getElementById("reiniciar").addEventListener("click", () => {
+      if (confirm("Esto borrará todos los ayudantes y faltas registradas en este navegador. ¿Continuar?")) {
+        estado = estadoInicial();
+        guardarEstado();
+        renderTabla();
+        mostrarEstado("Datos reiniciados.", "success");
+      }
+    });
+
+    /* ----- Inicio ----- */
+
+    renderCabecera();
+    inicializarConfiguracion();
+    renderTabla();
+  </script>
+
+</body>
+</html>
