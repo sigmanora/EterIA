@@ -61,7 +61,7 @@ function parseCSVCompleto(texto) {
 
 /* Parsea un bloque individual "SEMESTRE (CURSO): Comentario" */
 function parseBloque(bloque) {
-  let m = bloque.match(/^\s*(\d{4}-\d)\s*\(([^)]+)\)\s*:\s*([\s\S]*)$/);
+  let m = bloque.match(/^\s*(\d{4}-\d)\s*\(([^)]+)\)\s*:?\s*([\s\S]*)$/);
   if (m) {
     return { semestre: m[1], curso: m[2].trim(), comentarios: m[3].trim() || "-" };
   }
@@ -82,15 +82,18 @@ function parseBloque(bloque) {
 }
 
 /* Parsea la columna INFORMACIÓN, que puede traer varios bloques semestre-curso-comentario
-   pegados en la misma celda (ej. un ayudante con evaluaciones en 2025-2 y en 2026-1) */
+   pegados en la misma celda (ej. un ayudante con evaluaciones en 2025-2 y en 2026-1).
+   Solo se considera "inicio de bloque nuevo" una fecha que venga seguida de "(" o ":",
+   que es la firma real de un encabezado — así una fecha mencionada dentro de un
+   comentario (ej. "fue muy bueno en 2025-1)") no corta el texto a la mitad. */
 function parseInformacion(info="") {
   info = info.trim();
   if (!info) return [];
 
-  const semestreRegex = /\d{4}-\d/g;
+  const semestreRegex = /\d{4}-\d(?=\s*[:(])/g;
   const inicios = [...info.matchAll(semestreRegex)].map(m => m.index);
 
-  // No se detectó ningún patrón de semestre: se trata como un solo bloque
+  // No se detectó ningún encabezado de semestre: se trata como un solo bloque
   if (inicios.length === 0) return [parseBloque(info)];
 
   return inicios.map((inicio, i) => {
