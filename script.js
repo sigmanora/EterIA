@@ -115,10 +115,38 @@ function cargarHoja(url,tipo){
   });
 }
 
+/* Combina en una sola persona los registros que vienen repetidos
+   por estar tanto en la hoja de ayudantes como en la de auxiliares
+   de control (se identifica por RUT, o por nombre si no hay RUT) */
+function combinarPersonas(lista) {
+  const mapa = new Map();
+
+  lista.forEach(p => {
+    const rut = limpiarRut(normalizar(p.rut));
+    const clave = rut || ("nombre:" + normalizar(p.nombre));
+
+    if (!mapa.has(clave)) {
+      mapa.set(clave, {
+        nombre: p.nombre,
+        rut: p.rut,
+        roles: []
+      });
+    }
+
+    mapa.get(clave).roles.push({
+      tipo: p.tipo,
+      evaluacion: p.evaluacion,
+      evaluaciones: p.evaluaciones
+    });
+  });
+
+  return Array.from(mapa.values());
+}
+
 Promise.all([
   cargarHoja(AYUDANTES_URL,"Ayudante"),
   cargarHoja(AUXILIARES_URL,"Auxiliar de control")
-]).then(r=>personas=r.flat());
+]).then(r=>personas=combinarPersonas(r.flat()));
 
 /* Convierte la nota 1-4 en estrellas */
 function renderEstrellas(valor) {
@@ -129,21 +157,28 @@ function renderEstrellas(valor) {
 
 /* Mostrar persona */
 function mostrarPersona(persona) {
-  const evaluaciones = persona.evaluaciones?.length
-    ? persona.evaluaciones.map(e => `
-        <div class="evaluacion-item">
-          <p><strong>Curso y semestre:</strong> ${e.curso} · ${e.semestre}</p>
-          <p><strong>Comentarios:</strong> ${e.comentarios}</p>
-        </div>
-      `).join("<hr>")
-    : `<p>Sin registros de evaluación.</p>`;
+  const bloquesRoles = persona.roles.map(rol => {
+    const evaluaciones = rol.evaluaciones?.length
+      ? rol.evaluaciones.map(e => `
+          <div class="evaluacion-item">
+            <p><strong>Curso y semestre:</strong> ${e.curso} · ${e.semestre}</p>
+            <p><strong>Comentarios:</strong> ${e.comentarios}</p>
+          </div>
+        `).join("<hr>")
+      : `<p>Sin registros de evaluación.</p>`;
+
+    return `
+      <div class="rol-bloque">
+        <p><strong>Tipo:</strong> ${rol.tipo}</p>
+        <p><strong>Evaluación:</strong> <span class="estrellas">${renderEstrellas(rol.evaluacion)}</span></p>
+        ${evaluaciones}
+      </div>
+    `;
+  }).join("<hr>");
 
   resultado.innerHTML = `
     <h2>${formatearNombre(persona.nombre)}</h2>
-
-    <p><strong>Evaluación:</strong> <span class="estrellas">${renderEstrellas(persona.evaluacion)}</span></p>
-    <p><strong>Tipo:</strong> ${persona.tipo}</p>
-    ${evaluaciones}
+    ${bloquesRoles}
   `;
 
   modal.classList.remove("hidden");
@@ -174,4 +209,3 @@ input.addEventListener("input",()=>{
       lista.appendChild(d);
     });
 });
-      
