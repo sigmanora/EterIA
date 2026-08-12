@@ -107,34 +107,22 @@
       white-space: nowrap;
     }
 
-    /* ----- Settings panel ----- */
-    .settings-panel {
+    /* ----- Panel de evaluaciones (dinámico) ----- */
+    .controles-panel {
       margin-top: 22px;
       border: 1px solid var(--border);
       border-radius: 12px;
       background: var(--bg-soft);
-      padding: 4px 18px 18px;
+      padding: 18px;
     }
 
-    .settings-panel summary {
-      cursor: pointer;
-      padding: 14px 0;
+    .controles-panel-title {
       font-family: var(--font-display);
       font-weight: 600;
       font-size: 14px;
       color: var(--ink);
-      list-style: none;
+      margin-bottom: 8px;
     }
-
-    .settings-panel summary::-webkit-details-marker { display: none; }
-    .settings-panel summary::before {
-      content: "▸";
-      display: inline-block;
-      margin-right: 8px;
-      color: var(--accent);
-      transition: transform 0.15s ease;
-    }
-    .settings-panel[open] summary::before { transform: rotate(90deg); }
 
     .settings-hint {
       font-size: 12.5px;
@@ -143,50 +131,61 @@
       margin: 0 0 14px;
     }
 
-    .settings-grid {
+    .control-form {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .settings-row {
-      display: grid;
-      grid-template-columns: 1fr 140px 110px;
-      gap: 12px;
-      align-items: center;
-      font-size: 13px;
-      color: var(--ink);
-    }
-
-    .settings-row.settings-head {
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-    }
-
-    .settings-row input[type="number"] {
-      width: 64px;
+    .control-form input[type="text"] {
+      flex: 1;
+      min-width: 180px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 8px;
-      color: var(--ink);
-      font-family: var(--font-mono);
-      font-size: 12.5px;
-    }
-
-    .settings-row select {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 8px;
+      border-radius: 8px;
+      padding: 10px 12px;
       color: var(--ink);
       font-family: var(--font-body);
+      font-size: 13px;
+    }
+
+    .control-form input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+    .controles-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .control-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .control-chip button {
+      border: none;
+      background: transparent;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 2px 4px;
+    }
+
+    .control-chip button:hover { color: #ff8b84; }
+
+    .controles-empty {
       font-size: 12.5px;
+      color: var(--ink-faint);
     }
 
     .settings-umbrales {
@@ -194,8 +193,11 @@
       flex-wrap: wrap;
       gap: 16px;
       align-items: center;
-      border-top: 1px solid var(--border-soft);
-      padding-top: 14px;
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-soft);
+      padding: 14px 18px;
     }
 
     .settings-umbrales label {
@@ -392,7 +394,6 @@
 
     @media (max-width: 720px) {
       .card.wide.eval-card { padding: 28px 18px; }
-      .settings-row { grid-template-columns: 1fr; row-gap: 6px; }
     }
   </style>
 </head>
@@ -437,84 +438,31 @@
         <input type="file" id="input-importar" accept=".xlsx,.xls,.csv" class="visually-hidden">
       </div>
 
-      <!-- CONFIGURACIÓN -->
-      <details class="settings-panel" id="panel-config">
-        <summary>Configuración de ponderación</summary>
-
+      <!-- EVALUACIONES (dinámicas, definidas por ti) -->
+      <div class="controles-panel" id="panel-controles">
+        <div class="controles-panel-title">Evaluaciones a registrar</div>
         <p class="settings-hint">
-          Cada falta descuenta el porcentaje indicado del 100%. Estos valores son un punto de partida:
-          ajústalos para que calcen con tu pauta real, y quedan guardados automáticamente.
+          Agrega las evaluaciones que quieras registrar (ej. C1, C2, CREC, Control 3...). Cada una se
+          convierte en una columna donde marcar las faltas de cada categoría. No hay una lista
+          predeterminada: se guarda automáticamente lo que agregues.
         </p>
 
-        <div class="settings-grid">
-          <div class="settings-row settings-head">
-            <span>Categoría</span><span>Descuento por falta</span><span>Tipo</span>
-          </div>
+        <form id="form-control" class="control-form">
+          <input type="text" id="input-control" placeholder="Nombre de la evaluación (ej. C1)" required>
+          <button type="submit" class="small">+ Agregar evaluación</button>
+        </form>
 
-          <div class="settings-row">
-            <span>Recorrecciones graves</span>
-            <span><input type="number" id="peso-grave" min="0" max="100" step="0.5"> %</span>
-            <span>
-              <select id="tipo-grave">
-                <option value="leve">Leve</option>
-                <option value="fuerte">Fuerte</option>
-              </select>
-            </span>
-          </div>
+        <div class="controles-chips" id="controles-chips"></div>
+      </div>
 
-          <div class="settings-row">
-            <span>Recorrecciones leves</span>
-            <span><input type="number" id="peso-leves" min="0" max="100" step="0.5"> %</span>
-            <span>
-              <select id="tipo-leves">
-                <option value="leve">Leve</option>
-                <option value="fuerte">Fuerte</option>
-              </select>
-            </span>
-          </div>
-
-          <div class="settings-row">
-            <span>Atraso escaneos</span>
-            <span><input type="number" id="peso-escaneos" min="0" max="100" step="0.5"> %</span>
-            <span>
-              <select id="tipo-escaneos">
-                <option value="leve">Leve</option>
-                <option value="fuerte">Fuerte</option>
-              </select>
-            </span>
-          </div>
-
-          <div class="settings-row">
-            <span>Atraso o no ingreso de notas</span>
-            <span><input type="number" id="peso-notas" min="0" max="100" step="0.5"> %</span>
-            <span>
-              <select id="tipo-notas">
-                <option value="leve">Leve</option>
-                <option value="fuerte">Fuerte</option>
-              </select>
-            </span>
-          </div>
-
-          <div class="settings-row">
-            <span>Atraso o no respuesta a reclamos</span>
-            <span><input type="number" id="peso-reclamos" min="0" max="100" step="0.5"> %</span>
-            <span>
-              <select id="tipo-reclamos">
-                <option value="leve">Leve</option>
-                <option value="fuerte">Fuerte</option>
-              </select>
-            </span>
-          </div>
-        </div>
-
-        <div class="settings-umbrales">
-          <span class="settings-hint-inline">Nota final:</span>
-          <label>4 si evaluación ≥ <input type="number" id="umbral-u4" min="0" max="100">%</label>
-          <label>3 si evaluación ≥ <input type="number" id="umbral-u3" min="0" max="100">%</label>
-          <label>2 si evaluación ≥ <input type="number" id="umbral-u2" min="0" max="100">%</label>
-          <span class="settings-hint-inline">(bajo el último umbral → Nota 1)</span>
-        </div>
-      </details>
+      <!-- NOTAS: umbrales -->
+      <div class="settings-umbrales">
+        <span class="settings-hint-inline">Nota final:</span>
+        <label>4 si evaluación ≥ <input type="number" id="umbral-u4" min="0" max="100">%</label>
+        <label>3 si evaluación ≥ <input type="number" id="umbral-u3" min="0" max="100">%</label>
+        <label>2 si evaluación ≥ <input type="number" id="umbral-u2" min="0" max="100">%</label>
+        <span class="settings-hint-inline">(bajo el último umbral → Nota 1)</span>
+      </div>
 
       <!-- TABLA -->
       <div class="table-scroll">
@@ -550,24 +498,23 @@
        Bitácora interactiva de faltas + cálculo de evaluación.
        ========================================================= */
 
-    const STORAGE_KEY = "eteria_evaluacion_v1";
+    const STORAGE_KEY = "eteria_evaluacion_v2";
 
+    // Las categorías de falta son fijas, con un descuento fijo (no configurable)
+    // por cada vez que se marcan en una evaluación.
     const CATEGORIAS = [
-      { key: "grave",    label: "Recorrecciones graves",            tipoDefault: "fuerte", pesoDefault: 6 },
-      { key: "leves",    label: "Recorrecciones leves",             tipoDefault: "leve",   pesoDefault: 2 },
-      { key: "escaneos", label: "Atraso escaneos",                  tipoDefault: "leve",   pesoDefault: 3 },
-      { key: "notas",    label: "Atraso o no ingreso de notas",     tipoDefault: "fuerte", pesoDefault: 5 },
-      { key: "reclamos", label: "Atraso o no respuesta a reclamos", tipoDefault: "fuerte", pesoDefault: 4 },
+      { key: "grave",    label: "Recorrecciones graves",            tipo: "fuerte", peso: 6 },
+      { key: "leves",    label: "Recorrecciones leves",             tipo: "leve",   peso: 2 },
+      { key: "escaneos", label: "Atraso escaneos",                  tipo: "leve",   peso: 3 },
+      { key: "notas",    label: "Atraso o no ingreso de notas",     tipo: "fuerte", peso: 5 },
+      { key: "reclamos", label: "Atraso o no respuesta a reclamos", tipo: "fuerte", peso: 4 },
     ];
-
-    const CONTROLES = ["C1A", "C1B", "C2", "CREC", "C3", "C4"];
 
     function estadoInicial() {
       return {
         ayudantes: [],
         faltas: {},
-        pesos: Object.fromEntries(CATEGORIAS.map(c => [c.key, c.pesoDefault])),
-        tipos: Object.fromEntries(CATEGORIAS.map(c => [c.key, c.tipoDefault])),
+        controles: [],
         umbrales: { u4: 95, u3: 85, u2: 70 },
       };
     }
@@ -581,8 +528,7 @@
         return {
           ayudantes: Array.isArray(datos.ayudantes) ? datos.ayudantes : base.ayudantes,
           faltas: datos.faltas && typeof datos.faltas === "object" ? datos.faltas : base.faltas,
-          pesos: { ...base.pesos, ...(datos.pesos || {}) },
-          tipos: { ...base.tipos, ...(datos.tipos || {}) },
+          controles: Array.isArray(datos.controles) ? datos.controles : base.controles,
           umbrales: { ...base.umbrales, ...(datos.umbrales || {}) },
         };
       } catch {
@@ -686,11 +632,11 @@
 
       for (const cat of CATEGORIAS) {
         const marcas = faltasAy[cat.key] || {};
-        for (const ctrl of CONTROLES) {
+        for (const ctrl of estado.controles) {
           if (marcas[ctrl]) {
             total++;
-            deduccion += Number(estado.pesos[cat.key]) || 0;
-            if (estado.tipos[cat.key] === "leve") leve++; else fuerte++;
+            deduccion += cat.peso;
+            if (cat.tipo === "leve") leve++; else fuerte++;
           }
         }
       }
@@ -705,6 +651,29 @@
       return { porcentaje, leve, fuerte, total, nota };
     }
 
+    /* ----- Datos: evaluaciones (controles) ----- */
+
+    function agregarControl(nombre) {
+      nombre = textoSeguro(nombre);
+      if (!nombre) return false;
+      const yaExiste = estado.controles.some(c => normalizarTexto(c) === normalizarTexto(nombre));
+      if (yaExiste) return false;
+
+      estado.controles.push(nombre);
+      guardarEstado();
+      return true;
+    }
+
+    function eliminarControl(nombre) {
+      estado.controles = estado.controles.filter(c => c !== nombre);
+      Object.values(estado.faltas).forEach(faltasAy => {
+        CATEGORIAS.forEach(cat => {
+          if (faltasAy[cat.key]) delete faltasAy[cat.key][nombre];
+        });
+      });
+      guardarEstado();
+    }
+
     /* ----- Render: cabecera ----- */
 
     function renderCabecera() {
@@ -715,21 +684,57 @@
       row1.querySelectorAll(".cat-head").forEach(el => el.remove());
       row2.innerHTML = "";
 
+      if (!estado.controles.length) return;
+
       CATEGORIAS.forEach((cat, ci) => {
         const tint = ci % 2 === 0 ? "tint-a" : "tint-b";
 
         const th = document.createElement("th");
-        th.colSpan = CONTROLES.length;
+        th.colSpan = estado.controles.length;
         th.className = `cat-head ${tint}`;
         th.textContent = cat.label;
         row1.insertBefore(th, resultadoHead);
 
-        CONTROLES.forEach(ctrl => {
+        estado.controles.forEach(ctrl => {
           const th2 = document.createElement("th");
           th2.className = `col-check-head ${tint}`;
           th2.textContent = ctrl;
           row2.appendChild(th2);
         });
+      });
+    }
+
+    function renderControles() {
+      const cont = document.getElementById("controles-chips");
+      cont.innerHTML = "";
+
+      if (!estado.controles.length) {
+        const p = document.createElement("p");
+        p.className = "controles-empty";
+        p.textContent = "Todavía no agregas ninguna evaluación. Usa el formulario de arriba (ej. C1, C2, CREC).";
+        cont.appendChild(p);
+        return;
+      }
+
+      estado.controles.forEach(nombre => {
+        const chip = document.createElement("span");
+        chip.className = "control-chip";
+        chip.innerHTML = `<span>${escaparHTML(nombre)}</span>`;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "×";
+        btn.title = "Quitar evaluación";
+        btn.addEventListener("click", () => {
+          if (confirm(`¿Quitar la evaluación "${nombre}"? Se perderán las faltas registradas para ella.`)) {
+            eliminarControl(nombre);
+            renderCabecera();
+            renderControles();
+            renderTabla();
+          }
+        });
+        chip.appendChild(btn);
+        cont.appendChild(chip);
       });
     }
 
@@ -739,11 +744,24 @@
       const tbody = document.getElementById("tabla-body");
       tbody.innerHTML = "";
 
+      const colSpanVacio = Math.max(2, 2 + CATEGORIAS.length * estado.controles.length);
+
+      if (!estado.controles.length) {
+        const tr = document.createElement("tr");
+        tr.className = "fila-vacia";
+        const td = document.createElement("td");
+        td.colSpan = colSpanVacio;
+        td.textContent = "Agrega al menos una evaluación (arriba) antes de registrar faltas.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
       if (!estado.ayudantes.length) {
         const tr = document.createElement("tr");
         tr.className = "fila-vacia";
         const td = document.createElement("td");
-        td.colSpan = 2 + CATEGORIAS.length * CONTROLES.length;
+        td.colSpan = colSpanVacio;
         td.textContent = "Todavía no agregas ayudantes. Usa el formulario de arriba o importa una lista.";
         tr.appendChild(td);
         tbody.appendChild(tr);
@@ -781,7 +799,7 @@
 
       CATEGORIAS.forEach((cat, ci) => {
         const tint = ci % 2 === 0 ? "tint-a" : "tint-b";
-        CONTROLES.forEach(ctrl => {
+        estado.controles.forEach(ctrl => {
           const td = document.createElement("td");
           td.className = `col-check ${tint}`;
 
@@ -822,24 +840,6 @@
     /* ----- Configuración ----- */
 
     function inicializarConfiguracion() {
-      CATEGORIAS.forEach(cat => {
-        const inputPeso = document.getElementById(`peso-${cat.key}`);
-        inputPeso.value = estado.pesos[cat.key];
-        inputPeso.addEventListener("input", () => {
-          estado.pesos[cat.key] = Number(inputPeso.value) || 0;
-          guardarEstado();
-          renderTabla();
-        });
-
-        const selectTipo = document.getElementById(`tipo-${cat.key}`);
-        selectTipo.value = estado.tipos[cat.key];
-        selectTipo.addEventListener("change", () => {
-          estado.tipos[cat.key] = selectTipo.value;
-          guardarEstado();
-          renderTabla();
-        });
-      });
-
       ["u4", "u3", "u2"].forEach(k => {
         const input = document.getElementById(`umbral-${k}`);
         input.value = estado.umbrales[k];
@@ -876,6 +876,23 @@
         mostrarEstado(`${nombre} fue agregado.`, "success");
       } else {
         mostrarEstado("Falta el nombre o ese ayudante ya está en la lista.", "error");
+      }
+    });
+
+    document.getElementById("form-control").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("input-control");
+      const nombre = input.value;
+
+      if (agregarControl(nombre)) {
+        renderCabecera();
+        renderControles();
+        renderTabla();
+        e.target.reset();
+        input.focus();
+        mostrarEstado(`Evaluación "${nombre}" agregada.`, "success");
+      } else {
+        mostrarEstado("Escribe un nombre y que no esté repetido.", "error");
       }
     });
 
@@ -922,13 +939,17 @@
         mostrarEstado("Agrega al menos un ayudante antes de exportar.", "error");
         return;
       }
+      if (!estado.controles.length) {
+        mostrarEstado("Agrega al menos una evaluación antes de exportar.", "error");
+        return;
+      }
 
       const wb = XLSX.utils.book_new();
 
       const encabezado1 = ["N°", "RUT", "NOMBRE"];
       const encabezado2 = ["", "", ""];
       CATEGORIAS.forEach(cat => {
-        CONTROLES.forEach((ctrl, i) => {
+        estado.controles.forEach((ctrl, i) => {
           encabezado1.push(i === 0 ? cat.label : "");
           encabezado2.push(ctrl);
         });
@@ -938,7 +959,7 @@
       estado.ayudantes.forEach((a, i) => {
         const fila = [i + 1, a.rut, a.nombre];
         CATEGORIAS.forEach(cat => {
-          CONTROLES.forEach(ctrl => {
+          estado.controles.forEach(ctrl => {
             const marcado = estado.faltas[a.id] && estado.faltas[a.id][cat.key] && estado.faltas[a.id][cat.key][ctrl];
             fila.push(marcado ? 1 : "");
           });
@@ -948,8 +969,8 @@
 
       const hojaBitacora = XLSX.utils.aoa_to_sheet(filasBitacora);
       hojaBitacora["!merges"] = CATEGORIAS.map((_, i) => ({
-        s: { r: 0, c: 3 + i * CONTROLES.length },
-        e: { r: 0, c: 3 + i * CONTROLES.length + CONTROLES.length - 1 },
+        s: { r: 0, c: 3 + i * estado.controles.length },
+        e: { r: 0, c: 3 + i * estado.controles.length + estado.controles.length - 1 },
       }));
       XLSX.utils.book_append_sheet(wb, hojaBitacora, "Bitácora");
 
@@ -1003,6 +1024,7 @@
     /* ----- Inicio ----- */
 
     renderCabecera();
+    renderControles();
     inicializarConfiguracion();
     renderTabla();
   </script>
