@@ -519,12 +519,17 @@
     COORDINACIÓN &amp; CO.
   </a>
 
-  <div class="search-box">
-    <input
-      type="text"
-      placeholder="Buscar"
-    >
-    <span class="icon">🔍</span>
+  <div class="search-wrapper">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Buscar por nombre o RUT"
+      >
+      <span class="icon">🔍</span>
+    </div>
+
+    <!-- LISTA DE RESULTADOS -->
+    <div id="lista-resultados" class="lista-resultados"></div>
   </div>
 
   <div class="right-box">
@@ -2848,5 +2853,17 @@
       procesarArchivo
     );
 
-  </script></body>
+  </script>
+
+  <!-- MODAL BUSCADOR -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn">×</button>
+      <div id="resultado"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
 </html>
