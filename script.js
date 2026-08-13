@@ -212,3 +212,4 @@ input.addEventListener("input",()=>{
       lista.appendChild(d);
     });
 });
+      
