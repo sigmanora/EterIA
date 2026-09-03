@@ -475,7 +475,7 @@
           <button type="submit" class="small">+ Agregar</button>
         </form>
 
-        <label for="input-importar" class="small">Importar lista (Excel/CSV)</label>
+        <button type="button" id="btn-importar" class="small">Importar lista (Excel/CSV)</button>
         <input type="file" id="input-importar" accept=".xlsx,.xls,.csv" class="visually-hidden">
       </div>
 
@@ -953,6 +953,10 @@
       } else {
         mostrarEstado("Escribe un nombre y que no esté repetido.", "error");
       }
+    });
+
+    document.getElementById("btn-importar").addEventListener("click", () => {
+      document.getElementById("input-importar").click();
     });
 
     document.getElementById("input-importar").addEventListener("change", async (e) => {
