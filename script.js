@@ -22,7 +22,10 @@ function normalizar(t="") {
 }
 
 function limpiarRut(t="") {
-  return t.replace(/[.\s]/g,"");
+  // Elimina puntos, espacios, guiones y cualquier caracter que no sea
+  // alfanumérico, para que "12.345.678-9", "12345678-9" y "12345678 9"
+  // se reconozcan como el mismo RUT sin importar el formato de cada hoja.
+  return t.replace(/[^a-z0-9]/gi,"");
 }
 
 function formatearNombre(raw="") {
@@ -109,8 +112,8 @@ function cargarHoja(url,tipo){
       .slice(1)
       .filter(c => c[0])
       .map(c => ({
-        nombre:c[0],
-        rut:c[1],
+        nombre:(c[0]||"").trim(),
+        rut:(c[1]||"").trim(),
         evaluacion:c[2],
         evaluaciones: parseInformacion(c[3]),
         tipo
@@ -120,30 +123,51 @@ function cargarHoja(url,tipo){
 
 /* Combina en una sola persona los registros que vienen repetidos
    por estar tanto en la hoja de ayudantes como en la de auxiliares
-   de control (se identifica por RUT, o por nombre si no hay RUT) */
+   de control. Primero intenta calzar por RUT; si una persona no tiene
+   RUT en alguna de las hojas (o viene con formato distinto y por eso
+   no calzó), se usa el nombre normalizado como respaldo para igual
+   fusionar sus roles en un solo registro. */
 function combinarPersonas(lista) {
-  const mapa = new Map();
+  const porRut = new Map();
+  const sinRut = [];
 
   lista.forEach(p => {
     const rut = limpiarRut(normalizar(p.rut));
-    const clave = rut || ("nombre:" + normalizar(p.nombre));
-
-    if (!mapa.has(clave)) {
-      mapa.set(clave, {
-        nombre: p.nombre,
-        rut: p.rut,
-        roles: []
+    if (rut) {
+      if (!porRut.has(rut)) {
+        porRut.set(rut, { nombre: p.nombre, rut: p.rut, roles: [] });
+      }
+      porRut.get(rut).roles.push({
+        tipo: p.tipo,
+        evaluacion: p.evaluacion,
+        evaluaciones: p.evaluaciones
       });
+    } else {
+      sinRut.push(p);
     }
+  });
 
-    mapa.get(clave).roles.push({
+  // Índice por nombre normalizado, para fusionar por respaldo
+  const porNombre = new Map();
+  porRut.forEach(persona => {
+    porNombre.set(normalizar(persona.nombre), persona);
+  });
+
+  sinRut.forEach(p => {
+    const clave = normalizar(p.nombre);
+    let destino = porNombre.get(clave);
+    if (!destino) {
+      destino = { nombre: p.nombre, rut: p.rut, roles: [] };
+      porNombre.set(clave, destino);
+    }
+    destino.roles.push({
       tipo: p.tipo,
       evaluacion: p.evaluacion,
       evaluaciones: p.evaluaciones
     });
   });
 
-  return Array.from(mapa.values());
+  return Array.from(new Set(porNombre.values()));
 }
 
 Promise.all([
